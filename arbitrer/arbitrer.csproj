@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Authors>Paolo Possanzini,Teamdev s.r.l.</Authors>
+    <Description>RPC extensions for mediatr via pipeline</Description>
+    <Copyright>Copyright Paolo Possanzini</Copyright>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <Features>strict</Features>
+    <PackageTags>mediator;request;response;queries;commands;notifications;rpc</PackageTags>
+    <!-- <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\Arbitrer.snk</AssemblyOriginatorKeyFile> -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
+  </ItemGroup>
+</Project>
