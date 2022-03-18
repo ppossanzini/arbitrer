@@ -11,6 +11,8 @@ namespace Arbitrer.RabbitMQ
     public int Port { get; set; }
     public string QueueName { get; set; }
 
+    internal bool EnableServiceWorker { get; set; } = false;
+
     public JsonSerializerSettings SerializerSettings { get; set; }
 
     public MessageDispatcherOptions()

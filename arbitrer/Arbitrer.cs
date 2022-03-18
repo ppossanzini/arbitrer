@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Options;
 
 namespace Arbitrer
 {
@@ -12,9 +13,9 @@ namespace Arbitrer
   {
     private readonly ArbitrerOptions options;
     private readonly IExternalMessageDispatcher messageDispatcher;
-    public Arbitrer(ArbitrerOptions options, IExternalMessageDispatcher messageDispatcher)
+    public Arbitrer(IOptions<ArbitrerOptions> options, IExternalMessageDispatcher messageDispatcher)
     {
-      this.options = options;
+      this.options = options.Value;
       this.messageDispatcher = messageDispatcher;
     }
 
