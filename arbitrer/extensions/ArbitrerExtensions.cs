@@ -11,10 +11,10 @@ namespace Arbitrer
 
   public static class ArbitrerExtensions
   {
-    public static IServiceCollection AddArbitrer(this IServiceCollection services, Action<ArbitrerOptionsBuilder> configure = null)
+    public static IServiceCollection AddArbitrer(this IServiceCollection services, Action<ArbitrerOptions> configure = null)
     {
       if (configure != null)
-        services.Configure<ArbitrerOptions>(o => configure(new ArbitrerOptionsBuilder() { Service = services, Options = o }));
+        services.Configure<ArbitrerOptions>(configure);
       services.AddScoped(typeof(IPipelineBehavior<,>), typeof(Pipelines.ArbitrerPipeline<,>));
       services.AddSingleton<IArbitrer, Arbitrer>();
       return services;

@@ -38,7 +38,7 @@ namespace Arbitrer.RabbitMQ
     {
       if (_connection == null)
       {
-        logger.LogInformation($"Creating RabbitMQ Conection to '{options.HostName}'...");
+        logger.LogInformation($"ARBITRER: Creating RabbitMQ Conection to '{options.HostName}'...");
         var factory = new ConnectionFactory
         {
           HostName = options.HostName,
@@ -51,7 +51,7 @@ namespace Arbitrer.RabbitMQ
 
         _connection = factory.CreateConnection();
         _channel = _connection.CreateModel();
-        _channel.ExchangeDeclare("rpc_exchange", ExchangeType.Topic);
+        _channel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
       }
 
 
@@ -59,7 +59,7 @@ namespace Arbitrer.RabbitMQ
       {
 
         _channel.QueueDeclare(queue: t.FullName.Replace(".", "_"), durable: false, exclusive: false, autoDelete: false, arguments: null);
-        _channel.QueueBind(t.FullName.Replace(".", "_"), "", t.FullName.Replace(".", "_"));
+        _channel.QueueBind(t.FullName.Replace(".", "_"), Consts.ArbitrerExchangeName, t.FullName.Replace(".", "_"));
 
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -93,7 +93,7 @@ namespace Arbitrer.RabbitMQ
       }
       finally
       {
-        _channel.BasicPublish(exchange: "rpc_exchange", routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps, body: Encoding.UTF8.GetBytes(responseMsg ?? ""));
+        _channel.BasicPublish(exchange: Consts.ArbitrerExchangeName, routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps, body: Encoding.UTF8.GetBytes(responseMsg ?? ""));
         _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
       }
     }

@@ -21,7 +21,7 @@ namespace Arbitrer.RabbitMQ
     private IConnection _connection = null;
     private IModel _channel = null;
     private string _replyQueueName = null;
-    private EventingBasicConsumer _consumer = null;
+    private AsyncEventingBasicConsumer _consumer = null;
     private string _consumerId = null;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
@@ -53,11 +53,11 @@ namespace Arbitrer.RabbitMQ
       }
 
       _channel = _connection.CreateModel();
-      _channel.ExchangeDeclare("rpc_exchange", ExchangeType.Topic);
+      _channel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
 
       _replyQueueName = _channel.QueueDeclare(queue: options.QueueName).QueueName;
-      _consumer = new EventingBasicConsumer(_channel);
-      _consumer.Received += (s, ea) =>
+      _consumer = new AsyncEventingBasicConsumer(_channel);
+      _consumer.Received += async (s, ea) =>
       {
         if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs))
           return;
@@ -80,7 +80,7 @@ namespace Arbitrer.RabbitMQ
       _callbackMapper.TryAdd(correlationId, tcs);
 
       _channel.BasicPublish(
-        exchange: "rpc_exchange",
+        exchange: Consts.ArbitrerExchangeName,
         routingKey: typeof(TRequest).FullName.Replace(".", "_"),
         body: Encoding.UTF8.GetBytes(message),
         basicProperties: GetBasicProperties(correlationId));

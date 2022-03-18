@@ -6,16 +6,17 @@ namespace Arbitrer
 {
   public static class Extensions
   {
-    public static ArbitrerOptionsBuilder AddRabbitMQArbitrerMessageDispatcher(this ArbitrerOptionsBuilder builder, Action<MessageDispatcherOptions> config)
+    public static IServiceCollection AddArbitrerRabbitMQMessageDispatcher(this IServiceCollection services, Action<MessageDispatcherOptions> config)
     {
-      builder.Service.Configure<MessageDispatcherOptions>(config);
-      return builder;
+      services.Configure<MessageDispatcherOptions>(config);
+      services.AddSingleton<IExternalMessageDispatcher,MessageDispatcher>();
+      return services;
     }
 
-    public static ArbitrerOptionsBuilder ResolveCallsFromExternalService(this ArbitrerOptionsBuilder builder)
+    public static IServiceCollection ResolveArbitrerCalls(this IServiceCollection services)
     {
-      builder.Service.AddHostedService<RequestsManager>();
-      return builder;
+      services.AddHostedService<RequestsManager>();
+      return services;
     }
 
 
