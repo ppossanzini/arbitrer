@@ -9,6 +9,7 @@ using System.Threading;
 using System.Text;
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace Arbitrer.RabbitMQ
 {
@@ -55,7 +56,8 @@ namespace Arbitrer.RabbitMQ
       _channel = _connection.CreateModel();
       _channel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
 
-      _replyQueueName = _channel.QueueDeclare(queue: options.QueueName).QueueName;
+      var queueName = $"{options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
+      _replyQueueName = _channel.QueueDeclare(queue: queueName).QueueName;
       _consumer = new AsyncEventingBasicConsumer(_channel);
       _consumer.Received += async (s, ea) =>
       {

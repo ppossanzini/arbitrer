@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,7 +19,7 @@ namespace Arbitrer.RabbitMQ
   {
     private readonly ILogger<MessageDispatcher> logger;
     private readonly IArbitrer arbitrer;
-    private readonly IMediator mediator;
+    private readonly IServiceProvider provider;
 
     private IConnection _connection = null;
     private IModel _channel = null;
@@ -26,12 +27,12 @@ namespace Arbitrer.RabbitMQ
 
     private readonly MessageDispatcherOptions options;
 
-    public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IArbitrer arbitrer, IMediator mediator)
+    public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IArbitrer arbitrer, IServiceProvider provider)
     {
       this.options = options.Value;
       this.logger = logger;
       this.arbitrer = arbitrer;
-      this.mediator = mediator;
+      this.provider = provider;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -76,16 +77,20 @@ namespace Arbitrer.RabbitMQ
     private async Task ConsumeChannelMessage<T>(object sender, BasicDeliverEventArgs ea)
     {
       var msg = ea.Body.ToArray();
+      logger.LogDebug("Elaborating message : {0}", Encoding.UTF8.GetString(msg));
       var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
 
       var replyProps = _channel.CreateBasicProperties();
       replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
 
+      var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
       string responseMsg = null;
       try
       {
-        var response = await this.mediator.Send(message);
+        var response = await mediator.Send(message);
+        
         responseMsg = JsonConvert.SerializeObject(response, options.SerializerSettings);
+        logger.LogDebug("Elaborating sending response : {0}", responseMsg);
       }
       catch (Exception ex)
       {
@@ -93,7 +98,7 @@ namespace Arbitrer.RabbitMQ
       }
       finally
       {
-        _channel.BasicPublish(exchange: Consts.ArbitrerExchangeName, routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps, body: Encoding.UTF8.GetBytes(responseMsg ?? ""));
+        _channel.BasicPublish(exchange: "", routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps, body: Encoding.UTF8.GetBytes(responseMsg ?? ""));
         _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
       }
     }
