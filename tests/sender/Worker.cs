@@ -1,0 +1,38 @@
+using MediatR;
+
+namespace sender;
+
+public class Worker : BackgroundService
+{
+  private readonly ILogger<Worker> _logger;
+
+  private readonly IServiceProvider provider;
+
+  public Worker(ILogger<Worker> logger, IServiceProvider provider)
+  {
+    _logger = logger;
+    this.provider = provider;
+  }
+
+  protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+  {
+
+    var mediatr = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
+    while (!stoppingToken.IsCancellationRequested)
+    {
+      _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+
+      try
+      {
+        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequest1(), stoppingToken);
+        _logger.LogInformation($"Operation succeded with {response}");
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(exception: ex, "Error in remote request");
+      }
+
+      await Task.Delay(1000, stoppingToken);
+    }
+  }
+}
