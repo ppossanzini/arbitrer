@@ -4,29 +4,47 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Arbitrer
 {
-
   public class Arbitrer : IArbitrer
   {
     private readonly ArbitrerOptions options;
     private readonly IExternalMessageDispatcher messageDispatcher;
-    public Arbitrer(IOptions<ArbitrerOptions> options, IExternalMessageDispatcher messageDispatcher)
+    private readonly ILogger<Arbitrer> logger;
+
+    public Arbitrer(IOptions<ArbitrerOptions> options, IExternalMessageDispatcher messageDispatcher, ILogger<Arbitrer> logger)
     {
       this.options = options.Value;
       this.messageDispatcher = messageDispatcher;
+      this.logger = logger;
     }
 
     public bool HasLocalHandler<T>() where T : IBaseRequest => this.HasLocalHandler(typeof(T));
-    public bool HasLocalHandler(Type t) => this.options.LocalRequests.Any(i => i == t);
+
+    public bool HasLocalHandler(Type t)
+    {
+      var result = this.options.LocalRequests.Any(i => i == t);
+      if (result) logger.LogDebug("Has local handler!");
+      return result;
+    }
+
     public bool HasRemoteHandler<T>() where T : IBaseRequest => this.HasRemoteHandler(typeof(T));
-    public bool HasRemoteHandler(Type t) => this.options.RemoteRequests.Any(i => i == t);
+
+    public bool HasRemoteHandler(Type t)
+    {
+      var result = this.options.RemoteRequests.Any(i => i == t);
+      if (result) logger.LogDebug("Has remote handler!");
+      return result;
+    }
 
     public HandlerLocation GetLocation<T>() where T : IBaseRequest => this.GetLocation(typeof(T));
+
     public HandlerLocation GetLocation(Type t)
     {
+      logger.LogDebug($"GetLocation of type: {t.FullName}");
       return options.Behaviour switch
       {
         ArbitrerBehaviourEnum.ImplicitLocal => this.HasRemoteHandler(t) ? HandlerLocation.Remote : HandlerLocation.Local,
@@ -37,8 +55,10 @@ namespace Arbitrer
 
     public async Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request) where TRequest : IRequest<TResponse>
     {
-      return (TResponse)await messageDispatcher.Dispatch<TRequest, TResponse>(request);
-      throw new InvalidOperationException("OnRemoteCall has not been configured.");
+      logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).FullName}");
+      var result =  (TResponse) await messageDispatcher.Dispatch<TRequest, TResponse>(request);
+      logger.LogDebug($"Remote request for {typeof(TRequest).FullName} completed!");
+      return result;
     }
 
     public IEnumerable<Type> GetLocalRequestsTypes() => options.LocalRequests;
