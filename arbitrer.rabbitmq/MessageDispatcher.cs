@@ -13,10 +13,8 @@ using System.Diagnostics;
 
 namespace Arbitrer.RabbitMQ
 {
-
   public class MessageDispatcher : IExternalMessageDispatcher, IDisposable
   {
-
     private readonly MessageDispatcherOptions options;
     private readonly ILogger<MessageDispatcher> logger;
     private IConnection _connection = null;
@@ -59,13 +57,14 @@ namespace Arbitrer.RabbitMQ
       var queueName = $"{options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
       _replyQueueName = _channel.QueueDeclare(queue: queueName).QueueName;
       _consumer = new AsyncEventingBasicConsumer(_channel);
-      _consumer.Received += async (s, ea) =>
+      _consumer.Received += (s, ea) =>
       {
         if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs))
-          return;
+          return Task.CompletedTask;
         var body = ea.Body.ToArray();
         var response = Encoding.UTF8.GetString(body);
         tcs.TrySetResult(response);
+        return Task.CompletedTask;
       };
 
       this._consumerId = _channel.BasicConsume(queue: _replyQueueName, autoAck: true, consumer: _consumer);
@@ -90,7 +89,6 @@ namespace Arbitrer.RabbitMQ
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
       return JsonConvert.DeserializeObject<TResponse>(result, options.SerializerSettings);
-
     }
 
     private IBasicProperties GetBasicProperties(string correlationId)
@@ -109,8 +107,9 @@ namespace Arbitrer.RabbitMQ
         _channel.Close();
         _connection.Close();
       }
-      catch { }
+      catch
+      {
+      }
     }
   }
-
 }
