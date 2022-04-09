@@ -53,6 +53,8 @@ namespace Arbitrer.RabbitMQ
         _connection = factory.CreateConnection();
         _channel = _connection.CreateModel();
         _channel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
+
+        logger.LogInformation($"ARBITRER: ready !");
       }
 
 
