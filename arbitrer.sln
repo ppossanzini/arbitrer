@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "arbitrer", "arbitrer\arbitr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "arbitrer.rabbitmq", "arbitrer.rabbitmq\arbitrer.rabbitmq.csproj", "{7BC4AE47-FEB5-4404-B027-A30FAF581833}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3AA78ADA-0BD6-43C1-A215-E2608D090B27}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,7 @@ Global
 		{7BC4AE47-FEB5-4404-B027-A30FAF581833}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BC4AE47-FEB5-4404-B027-A30FAF581833}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BC4AE47-FEB5-4404-B027-A30FAF581833}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 EndGlobal

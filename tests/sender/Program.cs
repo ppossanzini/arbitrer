@@ -13,6 +13,10 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
       opt.Behaviour = ArbitrerBehaviourEnum.Explicit;
       opt.SetAsRemoteRequest<MediatRRequest1>();
+      opt.SetAsRemoteRequest<MediatRRequest2>();
+      opt.SetAsRemoteRequest<MediatRRequestWithException>();
+      opt.SetAsRemoteRequest<MediatRRequestWithHandlerException>();
+      opt.SetAsRemoteRequest<MediatRRequestWithNoHandlers>();
     });
       services.AddArbitrerRabbitMQMessageDispatcher(opt => context.Configuration.GetSection("rabbitmq").Bind(opt));
 

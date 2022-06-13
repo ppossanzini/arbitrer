@@ -7,7 +7,8 @@ namespace Arbitrer
 
   public interface IExternalMessageDispatcher
   {
-    Task<TResponse> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>;
+    Task<Messages.ResponseMessage> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) 
+      where TRequest : IRequest<TResponse>;
 
   }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 
 namespace Arbitrer
 {
@@ -23,8 +24,8 @@ namespace Arbitrer
     }
 
     public bool HasLocalHandler<T>() where T : IBaseRequest => this.HasLocalHandler(typeof(T));
-    public bool HasLocalHandler(Type t) =>this.options.LocalRequests.Any(i => i == t); 
-    
+    public bool HasLocalHandler(Type t) => this.options.LocalRequests.Any(i => i == t);
+
     public bool HasRemoteHandler<T>() where T : IBaseRequest => this.HasRemoteHandler(typeof(T));
     public bool HasRemoteHandler(Type t) => this.options.RemoteRequests.Any(i => i == t);
 
@@ -44,9 +45,20 @@ namespace Arbitrer
     public async Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request) where TRequest : IRequest<TResponse>
     {
       logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).FullName}");
-      var result = (TResponse) await messageDispatcher.Dispatch<TRequest, TResponse>(request);
+      var result = (Messages.ResponseMessage) await messageDispatcher.Dispatch<TRequest, TResponse>(request);
       logger.LogDebug($"Remote request for {typeof(TRequest).FullName} completed!");
-      return result;
+
+      if (result.Status == Messages.StatusEnum.Exception)
+      {
+        if (typeof(JObject).IsAssignableFrom(result.Content.GetType()))
+          throw (result.Content as JObject).ToObject<Exception>();
+
+        throw (result.Content ?? new Exception("Error executing remote command")) as Exception;
+      }
+
+      if (typeof(JObject).IsAssignableFrom(result.Content.GetType()))
+        return (result.Content as JObject).ToObject<TResponse>();
+      return (TResponse) result.Content;
     }
 
     public IEnumerable<Type> GetLocalRequestsTypes() => options.LocalRequests;
