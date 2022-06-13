@@ -10,6 +10,7 @@ using System.Text;
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Newtonsoft.Json.Serialization;
 
 namespace Arbitrer.RabbitMQ
 {
@@ -37,7 +38,7 @@ namespace Arbitrer.RabbitMQ
       // Ensuring we have a connetion object
       if (_connection == null)
       {
-        logger.LogInformation($"Creating RabbitMQ Conection to '{options.HostName}'...");
+        logger.LogInformation($"Creating RabbitMQ Connection to '{options.HostName}'...");
         var factory = new ConnectionFactory
         {
           HostName = options.HostName,
@@ -53,6 +54,7 @@ namespace Arbitrer.RabbitMQ
 
       _channel = _connection.CreateModel();
       _channel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
+      // _channel.ConfirmSelect();
 
       var queueName = $"{options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
       _replyQueueName = _channel.QueueDeclare(queue: queueName).QueueName;
@@ -67,11 +69,20 @@ namespace Arbitrer.RabbitMQ
         return Task.CompletedTask;
       };
 
+      _channel.BasicReturn += (s, ea) =>
+      {
+        // Il messaggio non può essere consegnato. 
+        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs))
+          return;
+
+        tcs.TrySetException(new Exception($"Unable to deliver required action: {ea.RoutingKey}"));
+      };
+
       this._consumerId = _channel.BasicConsume(queue: _replyQueueName, autoAck: true, consumer: _consumer);
     }
 
 
-    public async Task<TResponse> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>
+    public async Task<Messages.ResponseMessage> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
@@ -83,12 +94,14 @@ namespace Arbitrer.RabbitMQ
       _channel.BasicPublish(
         exchange: Consts.ArbitrerExchangeName,
         routingKey: typeof(TRequest).FullName.Replace(".", "_"),
+        mandatory: true,
         body: Encoding.UTF8.GetBytes(message),
         basicProperties: GetBasicProperties(correlationId));
 
+
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
-      return JsonConvert.DeserializeObject<TResponse>(result, options.SerializerSettings);
+      return JsonConvert.DeserializeObject<Messages.ResponseMessage>(result, options.SerializerSettings);
     }
 
     private IBasicProperties GetBasicProperties(string correlationId)
