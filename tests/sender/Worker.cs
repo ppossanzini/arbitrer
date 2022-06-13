@@ -16,7 +16,6 @@ public class Worker : BackgroundService
 
   protected override async Task ExecuteAsync(CancellationToken stoppingToken)
   {
-
     var mediatr = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
     while (!stoppingToken.IsCancellationRequested)
     {
@@ -31,6 +30,49 @@ public class Worker : BackgroundService
       {
         _logger.LogError(exception: ex, "Error in remote request");
       }
+
+      try
+      {
+        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequest2(), stoppingToken);
+        _logger.LogInformation($"Operation succeded with {response}");
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(exception: ex, "Error in remote request");
+      }
+
+
+      try
+      {
+        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequestWithHandlerException(), stoppingToken);
+        _logger.LogInformation($"Operation succeded with {response}");
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(exception: ex, "Error in remote request MediatRRequestWithHandlerException");
+      }
+
+      try
+      {
+        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequestWithException(), stoppingToken);
+        _logger.LogInformation($"Operation succeded with {response}");
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(exception: ex, "Error in remote request MediatRRequestWithException");
+      }
+
+
+      try
+      {
+        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequestWithNoHandlers(), stoppingToken);
+        _logger.LogInformation($"Operation succeded with {response}");
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(exception: ex, "Error in remote request MediatRRequestWithNoHandlers");
+      }
+
 
       await Task.Delay(1000, stoppingToken);
     }

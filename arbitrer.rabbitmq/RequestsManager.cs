@@ -90,13 +90,14 @@ namespace Arbitrer.RabbitMQ
       try
       {
         var response = await mediator.Send(message);
-        
-        responseMsg = JsonConvert.SerializeObject(response, options.SerializerSettings);
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Content = response, Status = Messages.StatusEnum.Ok }, options.SerializerSettings);
         logger.LogDebug("Elaborating sending response : {0}", responseMsg);
       }
       catch (Exception ex)
       {
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Content = ex, Status = Messages.StatusEnum.Exception }, options.SerializerSettings);
         logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
+
       }
       finally
       {
