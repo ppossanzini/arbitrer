@@ -95,7 +95,7 @@ namespace Arbitrer.RabbitMQ
       }
       catch (Exception ex)
       {
-        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Content = ex, Status = Messages.StatusEnum.Exception }, options.SerializerSettings);
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Exception = ex, Status = Messages.StatusEnum.Exception }, options.SerializerSettings);
         logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
 
       }
