@@ -82,7 +82,7 @@ namespace Arbitrer.RabbitMQ
     }
 
 
-    public async Task<Messages.ResponseMessage> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>
+    public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
@@ -101,7 +101,7 @@ namespace Arbitrer.RabbitMQ
 
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
-      return JsonConvert.DeserializeObject<Messages.ResponseMessage>(result, options.SerializerSettings);
+      return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
     }
 
     private IBasicProperties GetBasicProperties(string correlationId)

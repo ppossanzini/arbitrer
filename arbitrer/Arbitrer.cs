@@ -45,19 +45,14 @@ namespace Arbitrer
     public async Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request) where TRequest : IRequest<TResponse>
     {
       logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).FullName}");
-      var result = (Messages.ResponseMessage) await messageDispatcher.Dispatch<TRequest, TResponse>(request);
+      var result = await messageDispatcher.Dispatch<TRequest, TResponse>(request);
       logger.LogDebug($"Remote request for {typeof(TRequest).FullName} completed!");
 
       if (result.Status == Messages.StatusEnum.Exception)
       {
-        if (typeof(JObject).IsAssignableFrom(result.Content.GetType()))
-          throw (result.Content as JObject).ToObject<Exception>();
-
-        throw (result.Content ?? new Exception("Error executing remote command")) as Exception;
+        throw (result.Exception ?? new Exception("Error executing remote command")) as Exception;
       }
 
-      if (typeof(JObject).IsAssignableFrom(result.Content.GetType()))
-        return (result.Content as JObject).ToObject<TResponse>();
       return (TResponse) result.Content;
     }
 
