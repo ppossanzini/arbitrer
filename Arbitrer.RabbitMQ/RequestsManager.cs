@@ -92,7 +92,10 @@ namespace Arbitrer.RabbitMQ
       var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
       try
       {
+        var arbitrer = mediator as ArbitredMediatr;
+        arbitrer?.StopPropagating();
         await mediator.Publish(message);
+        arbitrer?.ResetPropagating();
       }
       catch (Exception ex)
       {
