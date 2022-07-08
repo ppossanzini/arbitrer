@@ -9,6 +9,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "arbitrer.rabbitmq", "arbitr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3AA78ADA-0BD6-43C1-A215-E2608D090B27}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cqrs.models", "tests\cqrs.models\cqrs.models.csproj", "{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "receiver", "tests\receiver\receiver.csproj", "{ABCBBD73-93A4-41B6-88AA-66B7EC20B9EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sender", "tests\sender\sender.csproj", "{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,7 +32,22 @@ Global
 		{7BC4AE47-FEB5-4404-B027-A30FAF581833}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BC4AE47-FEB5-4404-B027-A30FAF581833}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BC4AE47-FEB5-4404-B027-A30FAF581833}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABCBBD73-93A4-41B6-88AA-66B7EC20B9EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABCBBD73-93A4-41B6-88AA-66B7EC20B9EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABCBBD73-93A4-41B6-88AA-66B7EC20B9EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABCBBD73-93A4-41B6-88AA-66B7EC20B9EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858} = {3AA78ADA-0BD6-43C1-A215-E2608D090B27}
+		{ABCBBD73-93A4-41B6-88AA-66B7EC20B9EA} = {3AA78ADA-0BD6-43C1-A215-E2608D090B27}
+		{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB} = {3AA78ADA-0BD6-43C1-A215-E2608D090B27}
 	EndGlobalSection
 EndGlobal

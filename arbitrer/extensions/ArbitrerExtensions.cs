@@ -1,14 +1,13 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Arbitrer
 {
-
   public static class ArbitrerExtensions
   {
     public static IServiceCollection AddArbitrer(this IServiceCollection services, Action<ArbitrerOptions> configure = null)
@@ -20,7 +19,14 @@ namespace Arbitrer
       return services;
     }
 
+
     public static ArbitrerOptions SetAsLocalRequest<T>(this ArbitrerOptions options) where T : IBaseRequest
+    {
+      options.LocalRequests.Add(typeof(T));
+      return options;
+    }
+
+    public static ArbitrerOptions ListenForNotification<T>(this ArbitrerOptions options) where T : INotification
     {
       options.LocalRequests.Add(typeof(T));
       return options;
@@ -32,12 +38,18 @@ namespace Arbitrer
       return options;
     }
 
+    public static ArbitrerOptions PropagateNotification<T>(this ArbitrerOptions options) where T : INotification
+    {
+      options.RemoteRequests.Add(typeof(T));
+      return options;
+    }
+
     public static ArbitrerOptions SetAsLocalRequests(this ArbitrerOptions options, Func<IEnumerable<Assembly>> assemblySelect)
     {
       var types = (from a in assemblySelect()
-                   from t in a.GetTypes()
-                   where typeof(IBaseRequest).IsAssignableFrom(t)
-                   select t).AsEnumerable();
+        from t in a.GetTypes()
+        where typeof(IBaseRequest).IsAssignableFrom(t) || typeof(INotification).IsAssignableFrom(t)
+        select t).AsEnumerable();
       foreach (var t in types)
         options.LocalRequests.Add(t);
       return options;
@@ -53,9 +65,9 @@ namespace Arbitrer
     public static ArbitrerOptions SetAsRemoteRequests(this ArbitrerOptions options, Func<IEnumerable<Assembly>> assemblySelect)
     {
       var types = (from a in assemblySelect()
-                   from t in a.GetTypes()
-                   where typeof(IBaseRequest).IsAssignableFrom(t)
-                   select t).AsEnumerable();
+        from t in a.GetTypes()
+        where typeof(IBaseRequest).IsAssignableFrom(t) || typeof(INotification).IsAssignableFrom(t)
+        select t).AsEnumerable();
       foreach (var t in types)
         options.RemoteRequests.Add(t);
       return options;

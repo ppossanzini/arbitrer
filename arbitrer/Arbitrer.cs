@@ -56,6 +56,13 @@ namespace Arbitrer
       return (TResponse) result.Content;
     }
 
+    public async Task SendRemoteNotification<TRequest>(TRequest request) where TRequest : INotification
+    {
+      logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).FullName}");
+      await messageDispatcher.Notify(request);
+      logger.LogDebug($"Remote request for {typeof(TRequest).FullName} completed!");
+    }
+
     public IEnumerable<Type> GetLocalRequestsTypes() => options.LocalRequests;
 
     public IEnumerable<Type> GetRemoteRequestsTypes() => options.RemoteRequests;
