@@ -18,10 +18,10 @@ namespace Arbitrer
     protected override async Task PublishCore(IEnumerable<Func<INotification, CancellationToken, Task>> allHandlers, INotification notification,
       CancellationToken cancellationToken)
     {
-      if (_arbitrer.GetLocation(notification.GetType()) == HandlerLocation.Remote)
+      if (_arbitrer.HasRemoteHandler(notification.GetType()))
         await _arbitrer.SendRemoteNotification(notification);
-      
-      await base.PublishCore(allHandlers, notification, cancellationToken);
+      else
+        await base.PublishCore(allHandlers, notification, cancellationToken);
     }
   }
 }
