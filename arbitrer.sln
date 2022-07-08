@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "arbitrer", "arbitrer\arbitrer.csproj", "{E1E567F0-1BDF-4DE9-86F8-12E6CAFEE1E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer", "Arbitrer\Arbitrer.csproj", "{E1E567F0-1BDF-4DE9-86F8-12E6CAFEE1E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "arbitrer.rabbitmq", "arbitrer.rabbitmq\arbitrer.rabbitmq.csproj", "{7BC4AE47-FEB5-4404-B027-A30FAF581833}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.RabbitMQ", "Arbitrer.RabbitMQ\Arbitrer.RabbitMQ.csproj", "{7BC4AE47-FEB5-4404-B027-A30FAF581833}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3AA78ADA-0BD6-43C1-A215-E2608D090B27}"
 EndProject

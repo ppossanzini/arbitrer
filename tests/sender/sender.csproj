@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\cqrs.models\cqrs.models.csproj" />
-    <ProjectReference Include="..\..\arbitrer\arbitrer.csproj" />
-    <ProjectReference Include="..\..\arbitrer.rabbitmq\arbitrer.rabbitmq.csproj" />
+    <ProjectReference Include="..\..\Arbitrer\Arbitrer.csproj" />
+    <ProjectReference Include="..\..\Arbitrer.RabbitMQ\Arbitrer.RabbitMQ.csproj" />
   </ItemGroup>
 </Project>
