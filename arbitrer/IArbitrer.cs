@@ -15,6 +15,7 @@ namespace Arbitrer
     HandlerLocation GetLocation(Type t);
     HandlerLocation GetLocation<T>() where T : IBaseRequest;
     Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request) where TRequest : IRequest<TResponse>;
+    Task SendRemoteNotification<TRequest>(TRequest request) where TRequest : INotification;
 
     IEnumerable<Type> GetLocalRequestsTypes();
     IEnumerable<Type> GetRemoteRequestsTypes();

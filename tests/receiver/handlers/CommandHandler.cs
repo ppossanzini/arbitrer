@@ -7,7 +7,8 @@ namespace receiver.handlers
   public class CommandHandler : IRequestHandler<MediatRRequest1, bool>,
     IRequestHandler<MediatRRequest2, ResponseDTO>,
     IRequestHandler<MediatRRequest3, IEnumerable<ResponseDTO>>,
-    IRequestHandler<MediatRRequestWithHandlerException, bool>
+    IRequestHandler<MediatRRequestWithHandlerException, bool>, 
+    INotificationHandler<MediatorNotification1>
   {
     public Task<ResponseDTO> Handle(MediatRRequest2 request, CancellationToken cancellationToken)
     {
@@ -27,6 +28,11 @@ namespace receiver.handlers
     public Task<IEnumerable<ResponseDTO>> Handle(MediatRRequest3 request, CancellationToken cancellationToken)
     {
       return Task.FromResult(new[] {new ResponseDTO()}.AsEnumerable());
+    }
+
+    public Task Handle(MediatorNotification1 notification, CancellationToken cancellationToken)
+    {
+      return Task.CompletedTask;
     }
   }
 }

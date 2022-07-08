@@ -5,11 +5,10 @@ using System.Reflection;
 using MediatR;
 
 IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureServices((context, services) =>
-    {
-
-      services.AddMediatR(Assembly.GetExecutingAssembly());
-      services.AddArbitrer(opt =>
+  .ConfigureServices((context, services) =>
+  {
+    services.AddMediatR(cfg => cfg.Using<ArbitredMediatr>(), Assembly.GetExecutingAssembly());
+    services.AddArbitrer(opt =>
     {
       opt.Behaviour = ArbitrerBehaviourEnum.Explicit;
       opt.SetAsRemoteRequest<MediatRRequest1>();
@@ -18,11 +17,12 @@ IHost host = Host.CreateDefaultBuilder(args)
       opt.SetAsRemoteRequest<MediatRRequestWithException>();
       opt.SetAsRemoteRequest<MediatRRequestWithHandlerException>();
       opt.SetAsRemoteRequest<MediatRRequestWithNoHandlers>();
+      opt.PropagateNotification<MediatorNotification1>();
     });
-      services.AddArbitrerRabbitMQMessageDispatcher(opt => context.Configuration.GetSection("rabbitmq").Bind(opt));
+    services.AddArbitrerRabbitMQMessageDispatcher(opt => context.Configuration.GetSection("rabbitmq").Bind(opt));
 
-      services.AddHostedService<Worker>();
-    })
-    .Build();
+    services.AddHostedService<Worker>();
+  })
+  .Build();
 
 await host.RunAsync();

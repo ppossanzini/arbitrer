@@ -60,20 +60,47 @@ namespace Arbitrer.RabbitMQ
 
       foreach (var t in arbitrer.GetLocalRequestsTypes())
       {
+        var isNotification = typeof(INotification).IsAssignableFrom((t));
+        var queuename = $"{t.FullName.Replace(".", "_")}${(isNotification ? Guid.NewGuid().ToString() : "")}";
 
-        _channel.QueueDeclare(queue: t.FullName.Replace(".", "_"), durable: false, exclusive: false, autoDelete: false, arguments: null);
-        _channel.QueueBind(t.FullName.Replace(".", "_"), Consts.ArbitrerExchangeName, t.FullName.Replace(".", "_"));
+        _channel.QueueDeclare(queue: queuename, durable: false, exclusive: isNotification, autoDelete: false, arguments: null);
+        _channel.QueueBind(queuename, Consts.ArbitrerExchangeName, t.FullName.Replace(".", "_"));
 
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
 
-        var consumermethod = typeof(RequestsManager).GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(t);
+        var consumermethod = typeof(RequestsManager)
+          .GetMethod(isNotification ? "ConsumeChannelNotification" : "ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(t);
 
-        consumer.Received += async (s, ea) => await (Task)consumermethod.Invoke(this, new object[] { s, ea });
-        _channel.BasicConsume(queue: t.FullName.Replace(".", "_"), autoAck: false, consumer: consumer);
+        consumer.Received += async (s, ea) => await (Task) consumermethod.Invoke(this, new object[] {s, ea});
+        _channel.BasicConsume(queue: queuename, autoAck: isNotification, consumer: consumer);
       }
+
       _channel.BasicQos(0, 1, false);
       return Task.CompletedTask;
+    }
+
+    private async Task ConsumeChannelNotification<T>(object sender, BasicDeliverEventArgs ea)
+    {
+      var msg = ea.Body.ToArray();
+      logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
+      var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
+
+      var replyProps = _channel.CreateBasicProperties();
+      replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
+
+      var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
+      try
+      {
+        await mediator.Publish(message);
+      }
+      catch (Exception ex)
+      {
+        logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
+      }
+      finally
+      {
+      }
     }
 
     private async Task ConsumeChannelMessage<T>(object sender, BasicDeliverEventArgs ea)
@@ -90,14 +117,13 @@ namespace Arbitrer.RabbitMQ
       try
       {
         var response = await mediator.Send(message);
-        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Content = response, Status = Messages.StatusEnum.Ok }, options.SerializerSettings);
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage {Content = response, Status = Messages.StatusEnum.Ok}, options.SerializerSettings);
         logger.LogDebug("Elaborating sending response : {0}", responseMsg);
       }
       catch (Exception ex)
       {
-        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Exception = ex, Status = Messages.StatusEnum.Exception }, options.SerializerSettings);
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage {Exception = ex, Status = Messages.StatusEnum.Exception}, options.SerializerSettings);
         logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
-
       }
       finally
       {
@@ -111,8 +137,22 @@ namespace Arbitrer.RabbitMQ
       foreach (var s in _subscriptions)
         _channel.BasicCancel(s);
 
-      try { _channel?.Close(); } catch { }
-      try { _connection?.Close(); } catch { }
+      try
+      {
+        _channel?.Close();
+      }
+      catch
+      {
+      }
+
+      try
+      {
+        _connection?.Close();
+      }
+      catch
+      {
+      }
+
       return Task.CompletedTask;
     }
   }

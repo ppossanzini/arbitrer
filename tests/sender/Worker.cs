@@ -21,67 +21,77 @@ public class Worker : BackgroundService
     {
       _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
-      try
-      {
-        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequest1(), stoppingToken);
-        _logger.LogInformation($"Operation succeded with {response}");
-      }
-      catch (Exception ex)
-      {
-        _logger.LogError(exception: ex, "Error in remote request");
-      }
+      // try
+      // {
+      //   var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequest1(), stoppingToken);
+      //   _logger.LogInformation($"Operation succeded with {response}");
+      // }
+      // catch (Exception ex)
+      // {
+      //   _logger.LogError(exception: ex, "Error in remote request");
+      // }
+      //
+      // try
+      // {
+      //   var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequest2(), stoppingToken);
+      //   _logger.LogInformation($"Operation succeded with {response}");
+      // }
+      // catch (Exception ex)
+      // {
+      //   _logger.LogError(exception: ex, "Error in remote request");
+      // }
+      //
+      // try
+      // {
+      //   var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequest3(), stoppingToken);
+      //   _logger.LogInformation($"Operation succeded with {response}");
+      // }
+      // catch (Exception ex)
+      // {
+      //   _logger.LogError(exception: ex, "Error in remote request");
+      // }
+      //
+      //
+      // try
+      // {
+      //   var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequestWithHandlerException(), stoppingToken);
+      //   _logger.LogInformation($"Operation succeded with {response}");
+      // }
+      // catch (Exception ex)
+      // {
+      //   _logger.LogError(exception: ex, "Error in remote request MediatRRequestWithHandlerException");
+      // }
+      //
+      // try
+      // {
+      //   var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequestWithException(), stoppingToken);
+      //   _logger.LogInformation($"Operation succeded with {response}");
+      // }
+      // catch (Exception ex)
+      // {
+      //   _logger.LogError(exception: ex, "Error in remote request MediatRRequestWithException");
+      // }
+
 
       try
       {
-        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequest2(), stoppingToken);
-        _logger.LogInformation($"Operation succeded with {response}");
-      }
-      catch (Exception ex)
-      {
-        _logger.LogError(exception: ex, "Error in remote request");
-      }
-
-      try
-      {
-        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequest3(), stoppingToken);
-        _logger.LogInformation($"Operation succeded with {response}");
-      }
-      catch (Exception ex)
-      {
-        _logger.LogError(exception: ex, "Error in remote request");
-      }
-      
-
-      try
-      {
-        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequestWithHandlerException(), stoppingToken);
-        _logger.LogInformation($"Operation succeded with {response}");
-      }
-      catch (Exception ex)
-      {
-        _logger.LogError(exception: ex, "Error in remote request MediatRRequestWithHandlerException");
-      }
-
-      try
-      {
-        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequestWithException(), stoppingToken);
-        _logger.LogInformation($"Operation succeded with {response}");
-      }
-      catch (Exception ex)
-      {
-        _logger.LogError(exception: ex, "Error in remote request MediatRRequestWithException");
-      }
-
-
-      try
-      {
-        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequestWithNoHandlers(), stoppingToken);
-        _logger.LogInformation($"Operation succeded with {response}");
+        await mediatr.Publish(new cqrs.models.Commands.MediatorNotification1(), stoppingToken);
+        _logger.LogInformation($"Operation succeded ");
       }
       catch (Exception ex)
       {
         _logger.LogError(exception: ex, "Error in remote request MediatRRequestWithNoHandlers");
       }
+
+      // try
+      // {
+      //   var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequestWithNoHandlers(), stoppingToken);
+      //   _logger.LogInformation($"Operation succeded with {response}");
+      // }
+      // catch (Exception ex)
+      // {
+      //   _logger.LogError(exception: ex, "Error in remote request MediatRRequestWithNoHandlers");
+      // }
 
 
       await Task.Delay(1000, stoppingToken);

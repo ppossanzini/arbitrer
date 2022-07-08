@@ -19,9 +19,9 @@ namespace Arbitrer.RabbitMQ
     private readonly MessageDispatcherOptions options;
     private readonly ILogger<MessageDispatcher> logger;
     private IConnection _connection = null;
-    private IModel _channel = null;
+    private IModel _sendChannel = null;
     private string _replyQueueName = null;
-    private AsyncEventingBasicConsumer _consumer = null;
+    private AsyncEventingBasicConsumer _sendConsumer = null;
     private string _consumerId = null;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
@@ -52,14 +52,14 @@ namespace Arbitrer.RabbitMQ
         _connection = factory.CreateConnection();
       }
 
-      _channel = _connection.CreateModel();
-      _channel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
+      _sendChannel = _connection.CreateModel();
+      _sendChannel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
       // _channel.ConfirmSelect();
 
       var queueName = $"{options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
-      _replyQueueName = _channel.QueueDeclare(queue: queueName).QueueName;
-      _consumer = new AsyncEventingBasicConsumer(_channel);
-      _consumer.Received += (s, ea) =>
+      _replyQueueName = _sendChannel.QueueDeclare(queue: queueName).QueueName;
+      _sendConsumer = new AsyncEventingBasicConsumer(_sendChannel);
+      _sendConsumer.Received += (s, ea) =>
       {
         if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs))
           return Task.CompletedTask;
@@ -69,20 +69,18 @@ namespace Arbitrer.RabbitMQ
         return Task.CompletedTask;
       };
 
-      _channel.BasicReturn += (s, ea) =>
+      _sendChannel.BasicReturn += (s, ea) =>
       {
-        // Il messaggio non può essere consegnato. 
-        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs))
-          return;
-
+        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs)) return;
         tcs.TrySetException(new Exception($"Unable to deliver required action: {ea.RoutingKey}"));
       };
 
-      this._consumerId = _channel.BasicConsume(queue: _replyQueueName, autoAck: true, consumer: _consumer);
+      this._consumerId = _sendChannel.BasicConsume(queue: _replyQueueName, autoAck: true, consumer: _sendConsumer);
     }
 
 
-    public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>
+    public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+      where TRequest : IRequest<TResponse>
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
@@ -91,7 +89,7 @@ namespace Arbitrer.RabbitMQ
       var tcs = new TaskCompletionSource<string>();
       _callbackMapper.TryAdd(correlationId, tcs);
 
-      _channel.BasicPublish(
+      _sendChannel.BasicPublish(
         exchange: Consts.ArbitrerExchangeName,
         routingKey: typeof(TRequest).FullName.Replace(".", "_"),
         mandatory: true,
@@ -104,9 +102,21 @@ namespace Arbitrer.RabbitMQ
       return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
     }
 
+    public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
+    {
+      var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
+
+      _sendChannel.BasicPublish(
+        exchange: Consts.ArbitrerExchangeName,
+        routingKey: request.GetType().FullName.Replace(".", "_"),
+        mandatory: false,
+        body: Encoding.UTF8.GetBytes(message));
+    }
+
+
     private IBasicProperties GetBasicProperties(string correlationId)
     {
-      var props = _channel.CreateBasicProperties();
+      var props = _sendChannel.CreateBasicProperties();
       props.CorrelationId = correlationId;
       props.ReplyTo = _replyQueueName;
       return props;
@@ -116,8 +126,8 @@ namespace Arbitrer.RabbitMQ
     {
       try
       {
-        _channel?.BasicCancel(_consumerId);
-        _channel.Close();
+        _sendChannel?.BasicCancel(_consumerId);
+        _sendChannel.Close();
         _connection.Close();
       }
       catch
