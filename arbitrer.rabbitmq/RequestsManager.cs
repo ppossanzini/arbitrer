@@ -63,7 +63,7 @@ namespace Arbitrer.RabbitMQ
         var isNotification = typeof(INotification).IsAssignableFrom((t));
         var queuename = $"{t.FullName.Replace(".", "_")}${(isNotification ? Guid.NewGuid().ToString() : "")}";
 
-        _channel.QueueDeclare(queue: queuename, durable: false, exclusive: isNotification, autoDelete: false, arguments: null);
+        _channel.QueueDeclare(queue: queuename, durable: options.Durable, exclusive: isNotification, autoDelete: options.AutoDelete, arguments: null);
         _channel.QueueBind(queuename, Consts.ArbitrerExchangeName, t.FullName.Replace(".", "_"));
 
 
