@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -78,6 +79,27 @@ namespace Arbitrer
       foreach (var t in typesSelect())
         options.RemoteRequests.Add(t);
       return options;
+    }
+
+    public static string TypeName(this Type t, StringBuilder sb = null)
+    {
+      if (sb is null) sb = new StringBuilder();
+      sb.Append(t.Namespace);
+      sb.Append(".");
+      sb.Append(t.Name);
+
+      if (t.GenericTypeArguments?.Length > 0)
+      {
+        sb.Append("[");
+        foreach (var ta in t.GenericTypeArguments)
+        {
+          ta.TypeName(sb);
+          sb.Append(",");
+        }
+        sb.Append("]");
+      }
+      
+      return sb.ToString().Replace(",]","]").Replace(".","_");
     }
   }
 }

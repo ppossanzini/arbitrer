@@ -4,6 +4,7 @@ using cqrs.models.Commands;
 using System.Reflection;
 using MediatR;
 
+
 IHost host = Host.CreateDefaultBuilder(args)
   .ConfigureServices((context, services) =>
   {
@@ -24,5 +25,7 @@ IHost host = Host.CreateDefaultBuilder(args)
     services.AddHostedService<Worker>();
   })
   .Build();
+
+
 
 await host.RunAsync();
