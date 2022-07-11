@@ -61,10 +61,10 @@ namespace Arbitrer.RabbitMQ
       foreach (var t in arbitrer.GetLocalRequestsTypes())
       {
         var isNotification = typeof(INotification).IsAssignableFrom((t));
-        var queuename = $"{t.TypeName()}${(isNotification ? Guid.NewGuid().ToString() : "")}";
+        var queuename = $"{t.TypeQueueName()}${(isNotification ? Guid.NewGuid().ToString() : "")}";
 
         _channel.QueueDeclare(queue: queuename, durable: options.Durable, exclusive: isNotification, autoDelete: options.AutoDelete, arguments: null);
-        _channel.QueueBind(queuename, Consts.ArbitrerExchangeName, t.TypeName());
+        _channel.QueueBind(queuename, Consts.ArbitrerExchangeName, t.TypeQueueName());
 
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
