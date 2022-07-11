@@ -91,7 +91,7 @@ namespace Arbitrer.RabbitMQ
 
       _sendChannel.BasicPublish(
         exchange: Consts.ArbitrerExchangeName,
-        routingKey: typeof(TRequest).TypeName(),
+        routingKey: typeof(TRequest).TypeQueueName(),
         mandatory: true,
         body: Encoding.UTF8.GetBytes(message),
         basicProperties: GetBasicProperties(correlationId));
@@ -108,7 +108,7 @@ namespace Arbitrer.RabbitMQ
 
       _sendChannel.BasicPublish(
         exchange: Consts.ArbitrerExchangeName,
-        routingKey: request.GetType().TypeName(),
+        routingKey: request.GetType().TypeQueueName(),
         mandatory: false,
         body: Encoding.UTF8.GetBytes(message));
     }
