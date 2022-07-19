@@ -106,6 +106,8 @@ namespace Arbitrer.RabbitMQ
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
+      logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
+      
       _sendChannel.BasicPublish(
         exchange: Consts.ArbitrerExchangeName,
         routingKey: request.GetType().TypeQueueName(),

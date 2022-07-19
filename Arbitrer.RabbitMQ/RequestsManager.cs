@@ -72,7 +72,11 @@ namespace Arbitrer.RabbitMQ
         var consumermethod = typeof(RequestsManager)
           .GetMethod(isNotification ? "ConsumeChannelNotification" : "ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(t);
 
-        consumer.Received += async (s, ea) => await (Task) consumermethod.Invoke(this, new object[] {s, ea});
+        consumer.Received += async (s, ea) =>
+        {
+          logger.LogInformation($"message received : {ea.Exchange}/{ea.RoutingKey}");
+          await (Task) consumermethod.Invoke(this, new object[] {s, ea});
+        };
         _channel.BasicConsume(queue: queuename, autoAck: isNotification, consumer: consumer);
       }
 
@@ -103,6 +107,7 @@ namespace Arbitrer.RabbitMQ
       }
       finally
       {
+        _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
       }
     }
 
