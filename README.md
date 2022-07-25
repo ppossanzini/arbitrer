@@ -1,8 +1,7 @@
 # Arbitrer
-![CI](https://github.com/ppossanzini/arbitrer/workflows/CI/badge.svg)
 [![NuGet](https://img.shields.io/nuget/dt/arbitrer.svg)](https://www.nuget.org/packages/arbitrer) 
 [![NuGet](https://img.shields.io/nuget/vpre/arbitrer.svg)](https://www.nuget.org/packages/arbitrer)
-[![MyGet (dev)](https://img.shields.io/myget/arbitrer-ci/v/MediatR.svg)](https://myget.org/gallery/arbitrer-ci)
+
 
 Arbitrer provides MediatR Pipelines to transform mediator from In-process to Out-Of-Process messaging via RPC calls implemented with popular message dispatchers. 
 
