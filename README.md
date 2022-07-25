@@ -31,6 +31,13 @@ Either commands, from Package Manager Console or .NET Core CLI, will download an
 
 ## Configuration 
 
+Configuring Arbitrer is an easy task. 
+1) Add Arbitrer to services configuration via AddArbitrer extension method. 
+
+    services.AddArbitrer(opt =>
+
+3) Decide what is the default behaviour, available options are *ImplicitLocal*, *ImplicitRemote* or *Explicit*
+
 
     services.AddArbitrer(opt =>
     {
@@ -45,11 +52,15 @@ Either commands, from Package Manager Console or .NET Core CLI, will download an
     });
 
 
-# RabbitMQ
+# Arbitrer with RabbitMQ
 
 
 
 
-# Kafka
+# Arbitrer with Kafka
+
+Coming soon. 
+
+# Arbitrer with Azure Message Queues
 
 Coming soon. 
