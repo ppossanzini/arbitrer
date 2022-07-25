@@ -29,32 +29,116 @@ Or via the .NET Core command line interface:
 Either commands, from Package Manager Console or .NET Core CLI, will download and install Arbitrer and all required dependencies.
 
 
-## Configuration 
+## Basic Configuration 
 
 Configuring Arbitrer is an easy task. 
 1) Add Arbitrer to services configuration via AddArbitrer extension method. 
 
+``` 
+  services.AddArbitrer(opt => ...
+```
+
+2) Decide what is the default behaviour, available options are 
+   1) ***ImplicitLocal*** : all `mediator.Send()` calls will be delivered in-process unless further configuration. 
+   2) ***ImplicitRemote*** : all `mediator.Send()` calls will be delivered out-of-process unless further configuration. 
+   3) ***Explicit*** : you have the responsability do declare how to manage every single call. 
+
+
+```
     services.AddArbitrer(opt =>
+    {
+      opt.Behaviour = ArbitrerBehaviourEnum.Explicit;
+    });
+```
 
-3) Decide what is the default behaviour, available options are *ImplicitLocal*, *ImplicitRemote* or *Explicit*
 
+3) Configure calls delivery type according with you behaviour:
 
+```
     services.AddArbitrer(opt =>
     {
       opt.Behaviour = ArbitrerBehaviourEnum.Explicit;
       opt.SetAsRemoteRequest<MediatRRequest1>();
       opt.SetAsRemoteRequest<MediatRRequest2>();
-      opt.SetAsRemoteRequest<MediatRRequest3>();
-      opt.SetAsRemoteRequest<MediatRRequestWithException>();
-      opt.SetAsRemoteRequest<MediatRRequestWithHandlerException>();
-      opt.SetAsRemoteRequest<MediatRRequestWithNoHandlers>();
-      opt.PropagateNotification<MediatorNotification1>();
+      ....
+    }
+```
+
+
+Of course you will have some processes with requests declared **Local** and other processes with same requests declared **Remote**. 
+
+
+### Example of process with all local calls and some remote calls
+
+```
+    services.AddArbitrer(opt =>
+    {
+      opt.Behaviour = ArbitrerBehaviourEnum.ImplicitLocal;
+      opt.SetAsRemoteRequest<MediatRRequest1>();
+      opt.SetAsRemoteRequest<MediatRRequest2>();
+      opt.SetAsRemoteRequests(typeof(MediatRRequest2).Assembly); // All requests in an assembly
     });
+```
+
+
+### Example of process with local handlers. 
+
+```
+    services.AddArbitrer(opt =>
+    {
+      opt.Behaviour = ArbitrerBehaviourEnum.ImplicitLocal;
+    });
+
+```
+
+### Example of process with remore handlers. 
+
+```
+    services.AddArbitrer(opt =>
+    {
+      opt.Behaviour = ArbitrerBehaviourEnum.ImplicitRemote;
+    });
+```
 
 
 # Arbitrer with RabbitMQ
 
+You can use Arbitrer with RabbitMQ
 
+## Installing Arbitrer RabbitMQ extension.
+
+```
+    Install-Package Arbitrer.RabbitMQ
+```
+    
+Or via the .NET Core command line interface:
+
+```
+    dotnet add package Arbitrer.RabbitMQ
+```
+
+## Configuring RabbitMQ Extension. 
+
+Once installed you need to configure rabbitMQ extension. 
+
+```
+    services.AddArbitrerRabbitMQMessageDispatcher(opt =>
+    {
+      opt.HostName = "rabbit instance";
+      opt.Port = 5672;
+      opt.Password = "password";
+      opt.UserName = "rabbituser";
+      opt.VirtualHost = "/";
+    });
+    services.ResolveArbitrerCalls();
+```
+
+or if you prefer use appsettings configuration 
+
+```
+    services.AddArbitrerRabbitMQMessageDispatcher(opt => context.Configuration.GetSection("rabbitmq").Bind(opt));
+    services.ResolveArbitrerCalls();
+```
 
 
 # Arbitrer with Kafka
