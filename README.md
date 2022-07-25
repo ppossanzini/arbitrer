@@ -18,7 +18,15 @@ Arbitrer change Mediatr behaviour and let you decide which call needs to be in-p
 
 # Installation
 
+You should install [Arbitrer with NuGet](https://www.nuget.org/packages/arbitrer):
 
+    Install-Package Arbitrer
+    
+Or via the .NET Core command line interface:
+
+    dotnet add package Arbitrer
+
+Either commands, from Package Manager Console or .NET Core CLI, will download and install Arbitrer and all required dependencies.
 
 # RabbitMQ
 
