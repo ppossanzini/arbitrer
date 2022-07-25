@@ -9,7 +9,9 @@ using System.Threading;
 using System.Text;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Security.Cryptography;
 using Newtonsoft.Json.Serialization;
 
 namespace Arbitrer.RabbitMQ
@@ -24,6 +26,7 @@ namespace Arbitrer.RabbitMQ
     private AsyncEventingBasicConsumer _sendConsumer = null;
     private string _consumerId = null;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
+
 
     public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger)
     {
@@ -107,20 +110,22 @@ namespace Arbitrer.RabbitMQ
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
       logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
-      
+
       _sendChannel.BasicPublish(
         exchange: Consts.ArbitrerExchangeName,
         routingKey: request.GetType().TypeQueueName(),
         mandatory: false,
-        body: Encoding.UTF8.GetBytes(message));
+        body: Encoding.UTF8.GetBytes(message)
+      );
     }
-
+    
 
     private IBasicProperties GetBasicProperties(string correlationId)
     {
       var props = _sendChannel.CreateBasicProperties();
       props.CorrelationId = correlationId;
       props.ReplyTo = _replyQueueName;
+      ;
       return props;
     }
 
