@@ -5,7 +5,7 @@
 
 Arbitrer provides MediatR Pipelines to transform mediator from In-process to Out-Of-Process messaging via RPC calls implemented with popular message dispatchers. 
 
-# When you need Arbitrer. 
+## When you need Arbitrer. 
 
 Mediatr is very good to implement some patterns like [CQRS](https://docs.microsoft.com/en-us/azure/architecture/patterns/cqrs)
 
@@ -16,7 +16,7 @@ Microservices and patterns like CQRS are very powerfull combination. In this sce
 Arbitrer change Mediatr behaviour and let you decide which call needs to be in-process and which needs to be Out-of-process and dispatched remotely, via a configuration without changing a single row of your code.
 
 
-# Installation
+## Installation
 
 You should install [Arbitrer with NuGet](https://www.nuget.org/packages/arbitrer):
 
@@ -27,6 +27,23 @@ Or via the .NET Core command line interface:
     dotnet add package Arbitrer
 
 Either commands, from Package Manager Console or .NET Core CLI, will download and install Arbitrer and all required dependencies.
+
+
+## Configuration 
+
+
+    services.AddArbitrer(opt =>
+    {
+      opt.Behaviour = ArbitrerBehaviourEnum.Explicit;
+      opt.SetAsRemoteRequest<MediatRRequest1>();
+      opt.SetAsRemoteRequest<MediatRRequest2>();
+      opt.SetAsRemoteRequest<MediatRRequest3>();
+      opt.SetAsRemoteRequest<MediatRRequestWithException>();
+      opt.SetAsRemoteRequest<MediatRRequestWithHandlerException>();
+      opt.SetAsRemoteRequest<MediatRRequestWithNoHandlers>();
+      opt.PropagateNotification<MediatorNotification1>();
+    });
+
 
 # RabbitMQ
 
