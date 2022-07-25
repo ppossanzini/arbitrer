@@ -3,7 +3,7 @@
 [![NuGet](https://img.shields.io/nuget/vpre/arbitrer.svg)](https://www.nuget.org/packages/arbitrer)
 
 
-Arbitrer provides MediatR Pipelines to transform mediator from In-process to Out-Of-Process messaging via RPC calls implemented with popular message dispatchers. 
+Arbitrer provides [MediatR](https://github.com/jbogard/MediatR) Pipelines to transform mediator from In-process to Out-Of-Process messaging via RPC calls implemented with popular message dispatchers. 
 
 ## When you need Arbitrer. 
 
