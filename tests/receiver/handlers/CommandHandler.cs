@@ -32,6 +32,7 @@ namespace receiver.handlers
 
     public Task Handle(MediatorNotification1 notification, CancellationToken cancellationToken)
     {
+      Console.WriteLine($"Notification received at : ${DateTime.Now.ToString("HH:mm:ss")}");
       return Task.CompletedTask;
     }
   }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,8 @@ namespace Arbitrer.RabbitMQ
     private IConnection _connection = null;
     private IModel _channel = null;
     private List<string> _subscriptions = new List<string>();
+    private HashSet<string> _deduplicationcache = new HashSet<string>();    
+    private readonly SHA256 _hasher = SHA256.Create();
 
     private readonly MessageDispatcherOptions options;
 
@@ -74,7 +77,7 @@ namespace Arbitrer.RabbitMQ
 
         consumer.Received += async (s, ea) =>
         {
-          logger.LogInformation($"message received : {ea.Exchange}/{ea.RoutingKey}");
+         
           await (Task) consumermethod.Invoke(this, new object[] {s, ea});
         };
         _channel.BasicConsume(queue: queuename, autoAck: isNotification, consumer: consumer);
@@ -87,6 +90,29 @@ namespace Arbitrer.RabbitMQ
     private async Task ConsumeChannelNotification<T>(object sender, BasicDeliverEventArgs ea)
     {
       var msg = ea.Body.ToArray();
+
+      if (options.DeDuplicationEnabled)
+      {
+        var hash = msg.GetHash(_hasher);
+        if (_deduplicationcache.Contains(hash))
+        {
+          logger.LogDebug($"duplicated message received : {ea.Exchange}/{ea.RoutingKey}");
+          return;
+        }
+
+        lock (_deduplicationcache)
+          _deduplicationcache.Add(hash);
+
+        // Do not await this task
+        Task.Run(async () =>
+        {
+          await Task.Delay(options.DeDuplicationTTL);
+          lock (_deduplicationcache)
+            _deduplicationcache.Remove(hash);
+          
+        });
+      }
+      
       logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
       var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
 
@@ -107,7 +133,6 @@ namespace Arbitrer.RabbitMQ
       }
       finally
       {
-        _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
       }
     }
 

@@ -14,6 +14,9 @@ namespace Arbitrer.RabbitMQ
     public bool AutoDelete = false;
     public bool Durable = true;
 
+    public int DeDuplicationTTL { get; set; } = 5000;
+    public bool DeDuplicationEnabled { get; set; } = true;
+
     internal bool EnableServiceWorker { get; set; } = false;
 
     public JsonSerializerSettings SerializerSettings { get; set; }
