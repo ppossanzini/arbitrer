@@ -12,6 +12,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Security.Cryptography;
+using Arbitrer.Messages;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace Arbitrer.RabbitMQ
@@ -102,7 +104,19 @@ namespace Arbitrer.RabbitMQ
 
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
-      return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
+
+      if (typeof(TResponse).IsClass)
+        return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
+
+      var r = JsonConvert.DeserializeObject<Messages.ResponseMessage>(result, options.SerializerSettings);
+      if (r.Content != null)
+        r.Content = (r.Content as JObject).ToObject<TResponse>();
+      return new ResponseMessage<TResponse>()
+      {
+        Status = r.Status,
+        Exception =  r.Exception,
+        Content = (TResponse) (r.Content ?? default(TResponse))
+      };
     }
 
     public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
@@ -118,7 +132,7 @@ namespace Arbitrer.RabbitMQ
         body: Encoding.UTF8.GetBytes(message)
       );
     }
-    
+
 
     private IBasicProperties GetBasicProperties(string correlationId)
     {
