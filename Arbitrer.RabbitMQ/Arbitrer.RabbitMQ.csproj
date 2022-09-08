@@ -3,7 +3,7 @@
     <Authors>Paolo Possanzini,Teamdev s.r.l.</Authors>
     <Description>RPC extensions for mediatr via pipeline using RabbitMQ</Description>
     <Copyright>Copyright Paolo Possanzini</Copyright>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Features>strict</Features>
     <PackageTags>mediator;request;response;queries;commands;notifications;rpc;rabbitmq</PackageTags>
     <!-- <SignAssembly>true</SignAssembly>
