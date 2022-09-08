@@ -15,8 +15,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "receiver", "tests\receiver\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sender", "tests\sender\sender.csproj", "{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.Azure.Messaging.ServiceBus", "Arbitrer.Azure.Messaging.ServiceBus\Arbitrer.Azure.Messaging.ServiceBus.csproj", "{1C4E4EF5-CD19-49DC-9244-5F2C482E296D}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,10 +44,6 @@ Global
 		{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C4E4EF5-CD19-49DC-9244-5F2C482E296D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C4E4EF5-CD19-49DC-9244-5F2C482E296D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C4E4EF5-CD19-49DC-9244-5F2C482E296D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C4E4EF5-CD19-49DC-9244-5F2C482E296D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858} = {3AA78ADA-0BD6-43C1-A215-E2608D090B27}
