@@ -110,7 +110,7 @@ namespace Arbitrer.RabbitMQ
 
       var r = JsonConvert.DeserializeObject<Messages.ResponseMessage>(result, options.SerializerSettings);
       if (r.Content != null)
-        r.Content = (r.Content as JObject).ToObject<TResponse>();
+        r.Content = (r.Content as JToken).ToObject<TResponse>();
       return new ResponseMessage<TResponse>()
       {
         Status = r.Status,
