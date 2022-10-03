@@ -1,7 +1,7 @@
 using MediatR;
 
 namespace cqrs.models.Commands{
-  public class MediatRRequest1: IRequest<bool>{
+  public class MediatRRequest4: IRequest<long>{
     
   }
 }

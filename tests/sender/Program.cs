@@ -15,6 +15,7 @@ IHost host = Host.CreateDefaultBuilder(args)
       opt.SetAsRemoteRequest<MediatRRequest1>();
       opt.SetAsRemoteRequest<MediatRRequest2>();
       opt.SetAsRemoteRequest<MediatRRequest3>();
+      opt.SetAsRemoteRequest<MediatRRequest4>();
       opt.SetAsRemoteRequest<MediatRRequestWithException>();
       opt.SetAsRemoteRequest<MediatRRequestWithHandlerException>();
       opt.SetAsRemoteRequest<MediatRRequestWithNoHandlers>();

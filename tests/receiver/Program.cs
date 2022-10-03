@@ -14,6 +14,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         opt.SetAsLocalRequest<MediatRRequest1>();
         opt.SetAsLocalRequest<MediatRRequest2>();
         opt.SetAsLocalRequest<MediatRRequest3>();
+        opt.SetAsLocalRequest<MediatRRequest4>();
         opt.SetAsLocalRequest<MediatRRequestWithException>();
         opt.SetAsLocalRequest<MediatRRequestWithHandlerException>();
         opt.ListenForNotification<MediatorNotification1>();

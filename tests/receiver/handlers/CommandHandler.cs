@@ -4,9 +4,11 @@ using MediatR;
 
 namespace receiver.handlers
 {
-  public class CommandHandler : IRequestHandler<MediatRRequest1, bool>,
+  public class CommandHandler : 
+    IRequestHandler<MediatRRequest1, bool>,
     IRequestHandler<MediatRRequest2, ResponseDTO>,
     IRequestHandler<MediatRRequest3, IEnumerable<ResponseDTO>>,
+    IRequestHandler<MediatRRequest4, long>,
     IRequestHandler<MediatRRequestWithHandlerException, bool>, 
     INotificationHandler<MediatorNotification1>
   {
@@ -34,6 +36,11 @@ namespace receiver.handlers
     {
       Console.WriteLine($"Notification received at : ${DateTime.Now.ToString("HH:mm:ss")}");
       return Task.CompletedTask;
+    }
+
+    public async Task<long> Handle(MediatRRequest4 request, CancellationToken cancellationToken)
+    {
+      return 9;
     }
   }
 }

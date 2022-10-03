@@ -109,12 +109,21 @@ namespace Arbitrer.RabbitMQ
         return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
 
       var r = JsonConvert.DeserializeObject<Messages.ResponseMessage>(result, options.SerializerSettings);
-      if (r.Content != null)
-        r.Content = (r.Content as JToken).ToObject<TResponse>();
+      if (r?.Content != null)
+      {
+        var t = r.Content.GetType();
+        if (typeof(JToken).IsAssignableFrom(t))
+          r.Content = (r.Content as JToken).ToObject<TResponse>();
+
+        // if (typeof(JArray).IsAssignableFrom(t))
+        //   r.Content = (r.Content as JArray).ToObject<TResponse>();
+      }
+
+
       return new ResponseMessage<TResponse>()
       {
         Status = r.Status,
-        Exception =  r.Exception,
+        Exception = r.Exception,
         Content = (TResponse) (r.Content ?? default(TResponse))
       };
     }
