@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Authors>Paolo Possanzini,Teamdev s.r.l.</Authors>
+    <Description>RPC extensions for mediatr via pipeline</Description>
+    <Copyright>Copyright Paolo Possanzini</Copyright>
+    <Features>strict</Features>
+    <PackageTags>mediator;request;response;queries;commands;notifications;rpc</PackageTags>
+    <!-- <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\Arbitrer.snk</AssemblyOriginatorKeyFile> -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+    <RootNamespace>arbitrer</RootNamespace>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>arbitrer.rabbitmq</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Arbitrer\ArbitredMediatr.cs">
+      <Link>ArbitredMediatr.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer\Arbitrer.cs">
+      <Link>Arbitrer.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer\ArbitrerOptions.cs">
+      <Link>ArbitrerOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer\Attributes\ArbitrerQueueNameAttribute.cs">
+      <Link>Attributes\ArbitrerQueueNameAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer\extensions\ArbitrerExtensions.cs">
+      <Link>extensions\ArbitrerExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer\IArbitrer.cs">
+      <Link>IArbitrer.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer\IExternalMessageDispatcher.cs">
+      <Link>IExternalMessageDispatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer\InvalidHandlerException.cs">
+      <Link>InvalidHandlerException.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer\messages\ResponseMessage.cs">
+      <Link>messages\ResponseMessage.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer\pipelines\ArbitrerPipeline.cs">
+      <Link>pipelines\ArbitrerPipeline.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

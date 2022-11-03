@@ -17,12 +17,12 @@ namespace Arbitrer.Pipelines
 
     public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
     {
-      return arbitrer.GetLocation<TRequest>() switch
+      switch (arbitrer.GetLocation<TRequest>())
       {
-        HandlerLocation.Local => await next().ConfigureAwait(false),
-        HandlerLocation.Remote => await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request),
-        _ => throw new InvalidHandlerException()
-      };
+        case HandlerLocation.Local : return await next().ConfigureAwait(false);
+        case HandlerLocation.Remote : return await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request);
+        default: throw new InvalidHandlerException();
+      }
     }
   }
 }

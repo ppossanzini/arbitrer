@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Authors>Paolo Possanzini,Teamdev s.r.l.</Authors>
+    <Description>RPC extensions for mediatr via pipeline using RabbitMQ</Description>
+    <Copyright>Copyright Paolo Possanzini</Copyright>
+    <Features>strict</Features>
+    <PackageTags>mediator;request;response;queries;commands;notifications;rpc;rabbitmq</PackageTags>
+    <!-- <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\Arbitrer.snk</AssemblyOriginatorKeyFile> -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+    <RootNamespace>arbitrer.rabbitmq</RootNamespace>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="RabbitMQ.Client" Version="6.2.4" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Arbitrer.standard20\Arbitrer.standard20.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Arbitrer.RabbitMQ\consts.cs">
+      <Link>consts.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer.RabbitMQ\Extensions\Extensions.cs">
+      <Link>Extensions\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer.RabbitMQ\MessageDispatcher.cs">
+      <Link>MessageDispatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer.RabbitMQ\MessageDispatcherOptions.cs">
+      <Link>MessageDispatcherOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer.RabbitMQ\RequestsManager.cs">
+      <Link>RequestsManager.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>
