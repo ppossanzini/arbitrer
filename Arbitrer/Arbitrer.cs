@@ -34,12 +34,12 @@ namespace Arbitrer
 
     public HandlerLocation GetLocation(Type t)
     {
-      return options.Behaviour switch
+      switch (options.Behaviour)
       {
-        ArbitrerBehaviourEnum.ImplicitLocal => this.HasRemoteHandler(t) ? HandlerLocation.Remote : HandlerLocation.Local,
-        ArbitrerBehaviourEnum.ImplicitRemote => this.HasLocalHandler(t) ? HandlerLocation.Local : HandlerLocation.Remote,
-        _ => this.HasLocalHandler(t) ? HandlerLocation.Local : this.HasRemoteHandler(t) ? HandlerLocation.Remote : HandlerLocation.NotFound,
-      };
+        case ArbitrerBehaviourEnum.ImplicitLocal: return this.HasRemoteHandler(t) ? HandlerLocation.Remote : HandlerLocation.Local;
+        case ArbitrerBehaviourEnum.ImplicitRemote: return this.HasLocalHandler(t) ? HandlerLocation.Local : HandlerLocation.Remote;
+        default: return this.HasLocalHandler(t) ? HandlerLocation.Local : this.HasRemoteHandler(t) ? HandlerLocation.Remote : HandlerLocation.NotFound;
+      }
     }
 
     public async Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request) where TRequest : IRequest<TResponse>
