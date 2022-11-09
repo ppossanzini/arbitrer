@@ -61,6 +61,16 @@ public class Worker : BackgroundService
         _logger.LogError(exception: ex, "Error in remote request");
       }
       
+      try
+      {
+        var response = await mediatr.Send(new cqrs.models.Commands.MediatRRequest5(), stoppingToken);
+        _logger.LogInformation($"Operation succeded with {response}");
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(exception: ex, "Error in remote request");
+      }
+      
       
       // try
       // {
