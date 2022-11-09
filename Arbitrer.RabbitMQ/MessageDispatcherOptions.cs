@@ -28,7 +28,8 @@ namespace Arbitrer.RabbitMQ
         MissingMemberHandling = Newtonsoft.Json.MissingMemberHandling.Ignore,
         ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore,
         DateFormatHandling = Newtonsoft.Json.DateFormatHandling.IsoDateFormat,
-        DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc
+        DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc, 
+        TypeNameHandling = TypeNameHandling.Objects
       };
       SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
     }
