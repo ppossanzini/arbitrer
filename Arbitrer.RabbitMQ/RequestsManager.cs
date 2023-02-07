@@ -24,8 +24,8 @@ namespace Arbitrer.RabbitMQ
 
     private IConnection _connection = null;
     private IModel _channel = null;
-    private List<string> _subscriptions = new List<string>();
-    private HashSet<string> _deduplicationcache = new HashSet<string>();    
+
+    private readonly HashSet<string> _deduplicationcache = new HashSet<string>();
     private readonly SHA256 _hasher = SHA256.Create();
 
     private readonly MessageDispatcherOptions options;
@@ -33,7 +33,7 @@ namespace Arbitrer.RabbitMQ
     public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IArbitrer arbitrer, IServiceProvider provider)
     {
       this.options = options.Value;
-      this.logger = logger;
+      this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
       this.arbitrer = arbitrer;
       this.provider = provider;
     }
@@ -75,11 +75,7 @@ namespace Arbitrer.RabbitMQ
         var consumermethod = typeof(RequestsManager)
           .GetMethod(isNotification ? "ConsumeChannelNotification" : "ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(t);
 
-        consumer.Received += async (s, ea) =>
-        {
-         
-          await (Task) consumermethod.Invoke(this, new object[] {s, ea});
-        };
+        consumer.Received += async (s, ea) => { await (Task) consumermethod.Invoke(this, new object[] {s, ea}); };
         _channel.BasicConsume(queue: queuename, autoAck: isNotification, consumer: consumer);
       }
 
@@ -94,25 +90,27 @@ namespace Arbitrer.RabbitMQ
       if (options.DeDuplicationEnabled)
       {
         var hash = msg.GetHash(_hasher);
-        if (_deduplicationcache.Contains(hash))
-        {
-          logger.LogDebug($"duplicated message received : {ea.Exchange}/{ea.RoutingKey}");
-          return;
-        }
+        lock (_deduplicationcache)
+          if (_deduplicationcache.Contains(hash))
+          {
+            logger.LogDebug($"duplicated message received : {ea.Exchange}/{ea.RoutingKey}");
+            return;
+          }
 
         lock (_deduplicationcache)
           _deduplicationcache.Add(hash);
 
         // Do not await this task
+#pragma warning disable CS4014
         Task.Run(async () =>
         {
           await Task.Delay(options.DeDuplicationTTL);
           lock (_deduplicationcache)
             _deduplicationcache.Remove(hash);
-          
         });
+#pragma warning restore CS4014
       }
-      
+
       logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
       var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
 
@@ -167,9 +165,6 @@ namespace Arbitrer.RabbitMQ
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-      foreach (var s in _subscriptions)
-        _channel.BasicCancel(s);
-
       try
       {
         _channel?.Close();
