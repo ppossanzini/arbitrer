@@ -1,31 +1,22 @@
-using System.Threading.Tasks;
 using MediatR;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 using Newtonsoft.Json;
-using System.Threading;
 using System.Text;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Security.Cryptography;
-using Arbitrer.Messages;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
+using Confluent.Kafka;
 
-namespace Arbitrer.RabbitMQ
+
+namespace Arbitrer.Kafka
 {
   public class MessageDispatcher : IExternalMessageDispatcher, IDisposable
   {
     private readonly MessageDispatcherOptions options;
     private readonly ILogger<MessageDispatcher> logger;
-    private IConnection _connection = null;
-    private IModel _sendChannel = null;
+    private IProducer<Null, string> _producer;
     private string _replyQueueName = null;
-    private AsyncEventingBasicConsumer _sendConsumer = null;
+    private IConsumer<Null, string> _consumer;
     private string _consumerId = null;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
@@ -40,26 +31,13 @@ namespace Arbitrer.RabbitMQ
 
     private void InitConnection()
     {
-      // Ensuring we have a connetion object
-      if (_connection == null)
-      {
-        logger.LogInformation($"Creating RabbitMQ Connection to '{options.HostName}'...");
-        var factory = new ConnectionFactory
-        {
-          HostName = options.HostName,
-          UserName = options.UserName,
-          Password = options.Password,
-          VirtualHost = options.VirtualHost,
-          Port = options.Port,
-          DispatchConsumersAsync = true,
-        };
+      // Ensuring we have a connection object
+      _producer = new ProducerBuilder<Null, string>(this.options.Producer).Build();
+      _consumer = new ConsumerBuilder<Null, string>(this.options.Consumer).Build();
 
-        _connection = factory.CreateConnection();
-      }
+      logger.LogInformation($"Creating Kafka Connection to '{options.Producer?.BootstrapServers}'...'{options.Consumer.BootstrapServers}'");
 
-      _sendChannel = _connection.CreateModel();
-      _sendChannel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
-      // _channel.ConfirmSelect();
+      _consumer.Subscribe();
 
       var queueName = $"{options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
       _replyQueueName = _sendChannel.QueueDeclare(queue: queueName).QueueName;
@@ -94,13 +72,10 @@ namespace Arbitrer.RabbitMQ
       var tcs = new TaskCompletionSource<string>();
       _callbackMapper.TryAdd(correlationId, tcs);
 
-      _sendChannel.BasicPublish(
-        exchange: Consts.ArbitrerExchangeName,
-        routingKey: typeof(TRequest).TypeQueueName(),
-        mandatory: true,
-        body: Encoding.UTF8.GetBytes(message),
-        basicProperties: GetBasicProperties(correlationId));
-      
+      await _producer.ProduceAsync(
+        topic: typeof(TRequest).TypeQueueName(),
+        message: new Message<Null, string> {Value = message}, cancellationToken);
+
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
 
