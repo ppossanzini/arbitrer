@@ -20,74 +20,50 @@ namespace Arbitrer.Kafka
   public class MessageDispatcher : IExternalMessageDispatcher, IDisposable
   {
     private Thread _consumerThread;
-    private readonly MessageDispatcherOptions options;
+    private readonly MessageDispatcherOptions _options;
     private readonly ILogger<MessageDispatcher> _logger;
     private IProducer<Null, string> _producer;
     private IConsumer<Null, string> _consumer;
     private string _replyTopicName;
-    private string _topicName = null;
-    private bool _isNotification = false;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<object>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<object>>();
 
     public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger)
     {
-      this.options = options.Value;
+      this._options = options.Value;
       this._logger = logger;
-
-      //this.InitConnection(_consumer);
-    }
-
-    public MessageDispatcher(
-      IProducer<Null, string> producer, 
-      IConsumer<Null, string> consumer,
-      string topicName,
-      ILogger<MessageDispatcher> logger
-      )
-    {
-      this._logger = logger;
-      this._producer = producer;
-      this._consumer = consumer;
-      _topicName = topicName;
       this.InitConnection();
     }
+
 
     public void InitConnection()
     {
       // Ensuring we have a connection object
-      //_producer = new ProducerBuilder<Null, string>(this.options.Producer).Build();
-      //_consumer = new ConsumerBuilder<Null, string>(this.options.Consumer).Build();
+      _producer = new ProducerBuilder<Null, string>(this._options.GetProducerConfig()).Build();
+      _consumer = new ConsumerBuilder<Null, string>(this._options.GetConsumerConfig()).Build();
 
-      _logger.LogInformation($"Creating Kafka Connection to '{options.Producer?.BootstrapServers}'...'{options.Consumer.BootstrapServers}'");
+      _logger.LogInformation($"Creating Kafka Connection to '{_options.BootstrapServers}'...");
 
-      //_topicName = $"{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
-      
-      if ( _isNotification ) { 
-        this.options.GroupdId = $"{_topicName}.{Guid.NewGuid}";
-        
-        try { DisposeConsumer(); }
-        catch{}
+      _replyTopicName = $"{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
 
-        _consumer = new ConsumerBuilder<Null, string>(this.options.Consumer).Build();
-      }
-      _consumer.Subscribe(_topicName);
+      _consumer.Subscribe(_replyTopicName);
       _consumerThread = new Thread(() =>
-      {
-        while (true)
         {
-          var consumeResult = _consumer.Consume();
-          if (consumeResult != null)
+          while (true)
           {
-            var reply = JsonConvert.DeserializeObject<KafkaReply>(consumeResult.Message.Value, this.options.SerializerSettings);
+            var consumeResult = _consumer.Consume();
+            if (consumeResult != null)
+            {
+              var reply = JsonConvert.DeserializeObject<KafkaReply>(consumeResult.Message.Value, this._options.SerializerSettings);
 
-            if (!_callbackMapper.TryRemove(reply.CorrelationId, out TaskCompletionSource<object> tcs))
-              tcs.TrySetResult(reply.Reply);
-          } 
+              if (reply != null)
+                if (!_callbackMapper.TryRemove(reply.CorrelationId, out TaskCompletionSource<object> tcs))
+                  tcs?.TrySetResult(reply.Reply);
+            }
+          }
         }
-      }
       );
       _consumerThread.IsBackground = true;
       _consumerThread.Start();
-
     }
 
     public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
@@ -97,18 +73,17 @@ namespace Arbitrer.Kafka
       var message = JsonConvert.SerializeObject(new KafkaMessage<TRequest>
       {
         Message = request,
-        CorrelationId = correlationId
-      }, options.SerializerSettings);
+        CorrelationId = correlationId, 
+        ReplyTo = _replyTopicName
+      }, _options.SerializerSettings);
 
 
       var tcs = new TaskCompletionSource<object>();
       _callbackMapper.TryAdd(correlationId, tcs);
 
       await _producer.ProduceAsync(
-        topic: _topicName, //typeof(TRequest).TypeQueueName(),
-        message: new Message<Null, string> { Value = message }, cancellationToken);
-
-      //this.options.Consumer.GroupId = _topicName;
+        topic: typeof(TRequest).TypeQueueName(),
+        message: new Message<Null, string> {Value = message}, cancellationToken);
 
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
@@ -118,26 +93,34 @@ namespace Arbitrer.Kafka
 
     public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
     {
-      _isNotification = true;
-      var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
+      var message = JsonConvert.SerializeObject(request, _options.SerializerSettings);
 
       _logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
 
       await _producer.ProduceAsync(
-        topic: _topicName, //typeof(TRequest).TypeQueueName(),
-        message: new Message<Null, string> { Value = message }, cancellationToken);
-
-      //this.options.Consumer.GroupId = $"{_topicName}.{Guid.NewGuid()}";
+        topic: typeof(TRequest).TypeQueueName(),
+        message: new Message<Null, string> {Value = message}, cancellationToken);
     }
 
     public void Dispose()
     {
-      try { _producer.Dispose(); }
-      catch {}
+      try
+      {
+        _producer.Dispose();
+      }
+      catch
+      {
+      }
 
-      try { DisposeConsumer(); }
-      catch {}
+      try
+      {
+        DisposeConsumer();
+      }
+      catch
+      {
+      }
     }
+
     public void DisposeConsumer()
     {
       _consumer.Unsubscribe();
