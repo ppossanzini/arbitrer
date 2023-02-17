@@ -22,29 +22,36 @@ namespace Arbitrer.Kafka
     private Thread _consumerThread;
     private readonly MessageDispatcherOptions _options;
     private readonly ILogger<MessageDispatcher> _logger;
+    private readonly IServiceProvider _provider;
     private IProducer<Null, string> _producer;
     private IConsumer<Null, string> _consumer;
     private string _replyTopicName;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<object>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<object>>();
 
-    public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger)
+    public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IServiceProvider provider)
     {
       this._options = options.Value;
       this._logger = logger;
+      _provider = provider;
       this.InitConnection();
     }
 
 
     public void InitConnection()
     {
-      // Ensuring we have a connection object
-      _producer = new ProducerBuilder<Null, string>(this._options.GetProducerConfig()).Build();
-      _consumer = new ConsumerBuilder<Null, string>(this._options.GetConsumerConfig()).Build();
-
       _logger.LogInformation($"Creating Kafka Connection to '{_options.BootstrapServers}'...");
-
+      
+      // Ensuring we have a connection object
+      
       _replyTopicName = $"{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
+      var config = this._options.GetConsumerConfig();
+      config.GroupId = _replyTopicName;
+      
+      _producer = new ProducerBuilder<Null, string>(this._options.GetProducerConfig()).Build();
+      _consumer = new ConsumerBuilder<Null, string>(config).Build();
 
+      _provider.CreateTopicAsync(_options, _replyTopicName);
+        
       _consumer.Subscribe(_replyTopicName);
       _consumerThread = new Thread(() =>
         {

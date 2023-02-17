@@ -47,6 +47,7 @@ namespace Arbitrer.Kafka
 
       {
         var config = this._options.GetConsumerConfig();
+        config.GroupId = "Arbitrer";
         _requestConsumer = new ConsumerBuilder<Null, string>(config).Build();
       }
 
@@ -56,32 +57,31 @@ namespace Arbitrer.Kafka
         _notificationConsumer = new ConsumerBuilder<Null, string>(config).Build();
       }
 
-      using (var adminClient = new AdminClientBuilder(_options.GetAdminConfig()).Build())
+
+      foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
-        foreach (var t in _arbitrer.GetLocalRequestsTypes())
+        _provider.CreateTopicAsync(_options, t.TypeQueueName());
+        var isNotification = typeof(INotification).IsAssignableFrom(t);
+
+        if (isNotification)
         {
-          CreateTopicAsync(adminClient, t.TypeQueueName());
-          var isNotification = typeof(INotification).IsAssignableFrom(t);
+          _notificationConsumer.Subscribe(t.TypeQueueName());
+          var consumermethod = typeof(RequestsManager)
+            .GetMethod("ConsumeChannelNotification", BindingFlags.Instance | BindingFlags.NonPublic)
+            !.MakeGenericMethod(t);
+          _methods.Add(t.TypeQueueName(), consumermethod);
+        }
+        else
+        {
+          _requestConsumer.Subscribe(t.TypeQueueName());
 
-          if (isNotification)
-          {
-            _notificationConsumer.Subscribe(t.TypeQueueName());
-            var consumermethod = typeof(RequestsManager)
-              .GetMethod("ConsumeChannelNotification", BindingFlags.Instance | BindingFlags.NonPublic)
-              !.MakeGenericMethod(t);
-            _methods.Add(t.TypeQueueName(), consumermethod);
-          }
-          else
-          {
-            _requestConsumer.Subscribe(t.TypeQueueName());
-
-            var consumermethod = typeof(RequestsManager)
-              .GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)
-              !.MakeGenericMethod(t);
-            _methods.Add(t.TypeQueueName(), consumermethod);
-          }
+          var consumermethod = typeof(RequestsManager)
+            .GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)
+            !.MakeGenericMethod(t);
+          _methods.Add(t.TypeQueueName(), consumermethod);
         }
       }
+
 
       _requestConsumerThread = new Thread(() =>
       {
@@ -174,27 +174,6 @@ namespace Arbitrer.Kafka
       finally
       {
         await _producer.ProduceAsync(message.ReplyTo, new Message<Null, string>() {Value = responseMsg});
-      }
-    }
-
-
-    void CreateTopicAsync(IAdminClient adminClient, string topicName, short replicationFactor = 1)
-    {
-      try
-      {
-        adminClient.CreateTopicsAsync(new TopicSpecification[]
-        {
-          new TopicSpecification
-          {
-            Name = topicName,
-            ReplicationFactor = replicationFactor,
-            NumPartitions = this._options.TopicPartition ?? 1
-          }
-        });
-      }
-      catch (CreateTopicsException e)
-      {
-        _logger.LogError($"An error occurred creating topic {e.Results[0].Topic}: {e.Results[0].Error.Reason}");
       }
     }
 

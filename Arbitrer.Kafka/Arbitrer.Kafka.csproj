@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Authors>Paolo Possanzini,Teamdev s.r.l.</Authors>
+        <Authors>Paolo Possanzini, Alessandro Esposito, Teamdev s.r.l.</Authors>
         <Description>RPC extensions for mediatr via pipeline using Apache Kafka</Description>
         <Copyright>Copyright Paolo Possanzini</Copyright>
         <TargetFramework>net6.0</TargetFramework>
