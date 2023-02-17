@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,10 +23,11 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
     private readonly IArbitrer arbitrer;
     private readonly IServiceProvider provider;
 
-    private IConnection _connection = null;
-    private IModel _channel = null;
+    private ServiceBusClient _client;
+    private ServiceBusSender _sender;
+    private ServiceBusSessionProcessor _receiver;
+    
     private List<string> _subscriptions = new List<string>();
-    private HashSet<string> _deduplicationcache = new HashSet<string>();    
     private readonly SHA256 _hasher = SHA256.Create();
 
     private readonly MessageDispatcherOptions options;
@@ -75,11 +77,7 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
         var consumermethod = typeof(RequestsManager)
           .GetMethod(isNotification ? "ConsumeChannelNotification" : "ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(t);
 
-        consumer.Received += async (s, ea) =>
-        {
-         
-          await (Task) consumermethod.Invoke(this, new object[] {s, ea});
-        };
+        consumer.Received += async (s, ea) => { await (Task) consumermethod.Invoke(this, new object[] {s, ea}); };
         _channel.BasicConsume(queue: queuename, autoAck: isNotification, consumer: consumer);
       }
 
@@ -109,10 +107,9 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
           await Task.Delay(options.DeDuplicationTTL);
           lock (_deduplicationcache)
             _deduplicationcache.Remove(hash);
-          
         });
       }
-      
+
       logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
       var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
 

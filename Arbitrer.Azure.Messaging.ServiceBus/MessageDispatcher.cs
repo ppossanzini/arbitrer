@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
@@ -7,76 +8,108 @@ using Arbitrer.Messages;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using MediatR;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Arbitrer.Azure.Messaging.ServiceBus
 {
   public class MessageDispatcher : IExternalMessageDispatcher, IDisposable
   {
-    private readonly MessageDispatcherOptions _options;
+    private readonly MessageDispatcherOptions options;
     private readonly ILogger<MessageDispatcher> _logger;
     private ServiceBusAdministrationClient _adminclient;
 
-    private QueueProperties _replyqueue;
-
     private ServiceBusClient _client;
     private ServiceBusSender _sender;
+    private ServiceBusSessionProcessor _receiver;
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
+    private readonly string ReplyQuename = null;
 
     public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger)
     {
-      this._options = options.Value;
+      this.options = options.Value;
       this._logger = logger;
+      this.ReplyQuename = $"{this.options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
     }
 
     private async void InitConnection()
     {
       if (_adminclient == null)
       {
-        this._adminclient = new global::Azure.Messaging.ServiceBus.Administration.ServiceBusAdministrationClient(this._options.ConnectionString);
+        this._adminclient = new global::Azure.Messaging.ServiceBus.Administration.ServiceBusAdministrationClient(this.options.ConnectionString);
         TopicProperties topic = null;
         if (!await this._adminclient.TopicExistsAsync(Consts.ArbitrerTopicName))
         {
           topic = await this._adminclient.CreateTopicAsync(Consts.ArbitrerTopicName);
         }
 
-        var queueName = $"{_options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
-        this._replyqueue = await this._adminclient.CreateQueueAsync(new CreateQueueOptions(queueName)
+        await this._adminclient.CreateQueueAsync(new CreateQueueOptions(ReplyQuename)
         {
-          AutoDeleteOnIdle = new TimeSpan(0, 0, 10)
+          AutoDeleteOnIdle = new TimeSpan(0, 0, 10),
+          Name = ReplyQuename
         });
       }
-      
-      
-      _sendConsumer = new AsyncEventingBasicConsumer(_sendChannel);
-      _sendConsumer.Received += (s, ea) =>
+
+      _client = new ServiceBusClient(options.ConnectionString);
+      _sender = _client.CreateSender(Consts.ArbitrerTopicName);
+
+      // messages for this receiver will are reply from pattern "Request/Reply"
+      _receiver = _client.CreateSessionProcessor(ReplyQuename,
+        new ServiceBusSessionProcessorOptions() {ReceiveMode = ServiceBusReceiveMode.ReceiveAndDelete});
+
+      _receiver.ProcessMessageAsync += a =>
       {
-        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs))
+        if (!_callbackMapper.TryRemove(a.SessionId, out TaskCompletionSource<string> tcs))
           return Task.CompletedTask;
-        var body = ea.Body.ToArray();
+
+        var body = a.Message.Body.ToArray();
         var response = Encoding.UTF8.GetString(body);
         tcs.TrySetResult(response);
         return Task.CompletedTask;
       };
 
-      _sendChannel.BasicReturn += (s, ea) =>
+      await _receiver.StartProcessingAsync();
+      
+    }
+
+    public async Task<ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+      where TRequest : IRequest<TResponse>
+    {
+      var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
+      var sessionId = Guid.NewGuid().ToString();
+
+      var tcs = new TaskCompletionSource<string>();
+      _callbackMapper.TryAdd(sessionId, tcs);
+
+      await _sender.SendMessageAsync(new ServiceBusMessage(message)
       {
-        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs)) return;
-        tcs.TrySetException(new Exception($"Unable to deliver required action: {ea.RoutingKey}"));
-      };
+        PartitionKey = typeof(TRequest).TypeQueueName(),
+        To = typeof(TRequest).TypeQueueName(),
+        SessionId = sessionId,
+        ReplyToSessionId = sessionId,
+        ReplyTo = ReplyQuename
+      }, cancellationToken);
 
-      this._consumerId = _sendChannel.BasicConsume(queue: _replyQueueName, autoAck: true, consumer: _sendConsumer);
+      cancellationToken.Register(() => _callbackMapper.TryRemove(sessionId, out var tmp));
+      var result = await tcs.Task;
+
+      return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
     }
 
-    public Task<ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>
+    public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
     {
-      throw new NotImplementedException();
-    }
+      var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-    public Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
-    {
-      throw new NotImplementedException();
+      _logger.LogInformation($"Sending message to: {Consts.ArbitrerTopicName}/{request.GetType().TypeQueueName()}");
+
+      await _sender.SendMessageAsync(new ServiceBusMessage(message)
+      {
+        PartitionKey = typeof(TRequest).TypeQueueName(),
+        To = typeof(TRequest).TypeQueueName(),
+      }, cancellationToken);
     }
 
     public void Dispose()

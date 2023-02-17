@@ -108,39 +108,7 @@ namespace Arbitrer.RabbitMQ
       // if (typeof(TResponse).IsClass)
         return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
 
-      // var r = JsonConvert.DeserializeObject<Messages.ResponseMessage>(result, options.SerializerSettings);
-      // if (r?.Content != null)
-      // {
-      //   var t = r.Content.GetType();
-      //   if (typeof(JToken).IsAssignableFrom(t))
-      //   {
-      //     if (typeof(TResponse) == typeof(Int64)) r.Content = (r.Content as JToken)!.ToObject<Int64>();
-      //     if (typeof(TResponse) == typeof(UInt64)) r.Content = (r.Content as JToken)!.ToObject<UInt64>();
-      //     if (typeof(TResponse) == typeof(Int32)) r.Content = (r.Content as JToken)!.ToObject<Int32>();
-      //     if (typeof(TResponse) == typeof(UInt32)) r.Content = (r.Content as JToken)!.ToObject<UInt32>();
-      //     if (typeof(TResponse) == typeof(Int16)) r.Content = (r.Content as JToken)!.ToObject<Int16>();
-      //     if (typeof(TResponse) == typeof(UInt16)) r.Content = (r.Content as JToken)!.ToObject<UInt16>();
-      //     if (typeof(TResponse) == typeof(Byte)) r.Content = (r.Content as JToken)!.ToObject<Byte>();
-      //     
-      //     if (typeof(TResponse) == typeof(System.Char)) r.Content = (r.Content as JToken)!.ToObject<System.Char>();
-      //     if (typeof(TResponse) == typeof(Byte)) r.Content = (r.Content as JToken)!.ToObject<Byte>();
-      //     if (typeof(TResponse) == typeof(Byte)) r.Content = (r.Content as JToken)!.ToObject<Byte>();
-      //     if (typeof(TResponse) == typeof(Byte)) r.Content = (r.Content as JToken)!.ToObject<Byte>();
-      //     
-      //   }
-      //
-      //
-      //   // if (typeof(JArray).IsAssignableFrom(t))
-      //   //   r.Content = (r.Content as JArray).ToObject<TResponse>();
-      // }
-
-
-      // return new ResponseMessage<TResponse>()
-      // {
-      //   Status = r!.Status,
-      //   Exception = r.Exception,
-      //   Content = (TResponse) (r.Content ?? default(TResponse))
-      // };
+      
     }
 
     public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification

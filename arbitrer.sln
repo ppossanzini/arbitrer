@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20", "Arbi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.RabbitMQ", "Arbitrer.standard20.RabbitMQ\Arbitrer.standard20.RabbitMQ.csproj", "{1E39B1AB-19E4-4049-A658-7F40B603FB43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.Azure.Messaging.ServiceBus", "Arbitrer.Azure.Messaging.ServiceBus\Arbitrer.Azure.Messaging.ServiceBus.csproj", "{C904E800-B3DC-436A-8246-3B588A78C14E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{1E39B1AB-19E4-4049-A658-7F40B603FB43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E39B1AB-19E4-4049-A658-7F40B603FB43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E39B1AB-19E4-4049-A658-7F40B603FB43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C904E800-B3DC-436A-8246-3B588A78C14E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C904E800-B3DC-436A-8246-3B588A78C14E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C904E800-B3DC-436A-8246-3B588A78C14E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C904E800-B3DC-436A-8246-3B588A78C14E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858} = {3AA78ADA-0BD6-43C1-A215-E2608D090B27}
