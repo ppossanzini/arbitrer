@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Confluent.Kafka;
 
 namespace Arbitrer.Kafka
 {
@@ -18,9 +19,13 @@ namespace Arbitrer.Kafka
 
   public class KafkaReply
   {
-    [JsonProperty(ItemTypeNameHandling = TypeNameHandling.All)]
     public object Reply { get; set; }
-
+    public string CorrelationId { get; set; }
+  }
+  
+  public class KafkaReply<T>
+  {
+    public T Reply { get; set; }
     public string CorrelationId { get; set; }
   }
 }

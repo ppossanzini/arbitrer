@@ -53,8 +53,7 @@ namespace Arbitrer.Kafka
         MissingMemberHandling = Newtonsoft.Json.MissingMemberHandling.Ignore,
         ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore,
         DateFormatHandling = Newtonsoft.Json.DateFormatHandling.IsoDateFormat,
-        DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc,
-        TypeNameHandling = Newtonsoft.Json.TypeNameHandling.All
+        DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc
       };
       SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
     }

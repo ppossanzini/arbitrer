@@ -57,6 +57,8 @@ namespace Arbitrer.Kafka
         _notificationConsumer = new ConsumerBuilder<Null, string>(config).Build();
       }
 
+      var notificationsSubscriptions = new List<string>();
+      var requestSubscriptions = new List<string>();
 
       foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
@@ -65,7 +67,8 @@ namespace Arbitrer.Kafka
 
         if (isNotification)
         {
-          _notificationConsumer.Subscribe(t.TypeQueueName());
+          // _notificationConsumer.Subscribe(t.TypeQueueName());
+          notificationsSubscriptions.Add(t.TypeQueueName());
           var consumermethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelNotification", BindingFlags.Instance | BindingFlags.NonPublic)
             !.MakeGenericMethod(t);
@@ -73,16 +76,18 @@ namespace Arbitrer.Kafka
         }
         else
         {
-          _requestConsumer.Subscribe(t.TypeQueueName());
-
+          // _requestConsumer.Subscribe(t.TypeQueueName());
+          requestSubscriptions.Add(t.TypeQueueName());
           var consumermethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)
             !.MakeGenericMethod(t);
           _methods.Add(t.TypeQueueName(), consumermethod);
         }
       }
-
-
+      
+      _requestConsumer.Subscribe(requestSubscriptions);
+      _notificationConsumer.Subscribe(notificationsSubscriptions);
+      
       _requestConsumerThread = new Thread(() =>
       {
         while (true)
@@ -103,6 +108,7 @@ namespace Arbitrer.Kafka
           method!.Invoke(this, new object[] {notification.Message.Value});
         }
       }) {IsBackground = true};
+      
       _notificationConsumerThread.Start();
 
 

@@ -26,7 +26,7 @@ namespace Arbitrer.Kafka
     private IProducer<Null, string> _producer;
     private IConsumer<Null, string> _consumer;
     private string _replyTopicName;
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<object>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<object>>();
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
     public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IServiceProvider provider)
     {
@@ -60,11 +60,13 @@ namespace Arbitrer.Kafka
             var consumeResult = _consumer.Consume();
             if (consumeResult != null)
             {
+              
+              _logger.LogDebug("Response Message: {Msg}", consumeResult.Message.Value);
               var reply = JsonConvert.DeserializeObject<KafkaReply>(consumeResult.Message.Value, this._options.SerializerSettings);
 
               if (reply != null)
-                if (!_callbackMapper.TryRemove(reply.CorrelationId, out TaskCompletionSource<object> tcs))
-                  tcs?.TrySetResult(reply.Reply);
+                if (_callbackMapper.TryRemove(reply.CorrelationId, out TaskCompletionSource<string> tcs))
+                  tcs?.TrySetResult(consumeResult.Message.Value);
             }
           }
         }
@@ -85,8 +87,8 @@ namespace Arbitrer.Kafka
       }, _options.SerializerSettings);
 
 
-      var tcs = new TaskCompletionSource<object>();
-      _callbackMapper.TryAdd(correlationId, tcs);
+      var tcs = new TaskCompletionSource<string>();
+      var rr = _callbackMapper.TryAdd(correlationId, tcs);
 
       await _producer.ProduceAsync(
         topic: typeof(TRequest).TypeQueueName(),
@@ -95,7 +97,8 @@ namespace Arbitrer.Kafka
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
 
-      return result as Messages.ResponseMessage<TResponse>;
+      var r = JsonConvert.DeserializeObject<KafkaReply<ResponseMessage<TResponse>>>(result, this._options.SerializerSettings);
+      return r!.Reply;
     }
 
     public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
@@ -113,23 +116,30 @@ namespace Arbitrer.Kafka
     {
       try
       {
-        _producer.Dispose();
       }
-      catch
+      finally
       {
-      }
+        try
+        {
+          _producer.Dispose();
+        }
+        catch
+        {
+        }
 
-      try
-      {
-        DisposeConsumer();
-      }
-      catch
-      {
+        try
+        {
+          DisposeConsumer();
+        }
+        catch
+        {
+        }
       }
     }
 
-    public void DisposeConsumer()
+    private void DisposeConsumer()
     {
+       _provider.DeleteTopicAsync(this._options, this._replyTopicName);
       _consumer.Unsubscribe();
       _consumer.Close();
       _consumer.Dispose();

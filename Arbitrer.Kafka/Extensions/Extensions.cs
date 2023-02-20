@@ -45,5 +45,11 @@ namespace Arbitrer
           logger?.LogError($"An error occurred creating topic {e.Results[0].Topic}: {e.Results[0].Error.Reason}");
         }
     }
+
+    public static async void DeleteTopicAsync(this IServiceProvider services, MessageDispatcherOptions options, string topicName)
+    {
+      using var adminClient = new AdminClientBuilder(options.GetAdminConfig()).Build();
+      await adminClient.DeleteTopicsAsync(new string[] { topicName });
+    }
   }
 }
