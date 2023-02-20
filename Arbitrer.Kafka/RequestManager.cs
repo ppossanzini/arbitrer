@@ -67,7 +67,6 @@ namespace Arbitrer.Kafka
 
         if (isNotification)
         {
-          // _notificationConsumer.Subscribe(t.TypeQueueName());
           notificationsSubscriptions.Add(t.TypeQueueName());
           var consumermethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelNotification", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -76,7 +75,6 @@ namespace Arbitrer.Kafka
         }
         else
         {
-          // _requestConsumer.Subscribe(t.TypeQueueName());
           requestSubscriptions.Add(t.TypeQueueName());
           var consumermethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)
