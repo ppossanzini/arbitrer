@@ -17,7 +17,7 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
 {
   public class MessageDispatcher : IExternalMessageDispatcher, IDisposable
   {
-    private readonly MessageDispatcherOptions options;
+    private readonly MessageDispatcherOptions _options;
     private readonly ILogger<MessageDispatcher> _logger;
     private ServiceBusAdministrationClient _adminclient;
 
@@ -30,16 +30,18 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
 
     public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger)
     {
-      this.options = options.Value;
+      this._options = options.Value;
       this._logger = logger;
-      this.ReplyQuename = $"{this.options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
+      this.ReplyQuename = $"{this._options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
+      
+      InitConnection();
     }
 
     private async void InitConnection()
     {
       if (_adminclient == null)
       {
-        this._adminclient = new global::Azure.Messaging.ServiceBus.Administration.ServiceBusAdministrationClient(this.options.ConnectionString);
+        this._adminclient = new global::Azure.Messaging.ServiceBus.Administration.ServiceBusAdministrationClient(this._options.ConnectionString);
         TopicProperties topic = null;
         if (!await this._adminclient.TopicExistsAsync(Consts.ArbitrerTopicName))
         {
@@ -53,7 +55,7 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
         });
       }
 
-      _client = new ServiceBusClient(options.ConnectionString);
+      _client = new ServiceBusClient(_options.ConnectionString);
       _sender = _client.CreateSender(Consts.ArbitrerTopicName);
 
       // messages for this receiver will are reply from pattern "Request/Reply"
@@ -78,7 +80,7 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
     public async Task<ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
       where TRequest : IRequest<TResponse>
     {
-      var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
+      var message = JsonConvert.SerializeObject(request, _options.SerializerSettings);
       var sessionId = Guid.NewGuid().ToString();
 
       var tcs = new TaskCompletionSource<string>();
@@ -96,12 +98,12 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
       cancellationToken.Register(() => _callbackMapper.TryRemove(sessionId, out var tmp));
       var result = await tcs.Task;
 
-      return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
+      return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, _options.SerializerSettings);
     }
 
     public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
     {
-      var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
+      var message = JsonConvert.SerializeObject(request, _options.SerializerSettings);
 
       _logger.LogInformation($"Sending message to: {Consts.ArbitrerTopicName}/{request.GetType().TypeQueueName()}");
 

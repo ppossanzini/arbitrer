@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -19,56 +21,58 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
 {
   public class RequestsManager : IHostedService
   {
-    private readonly ILogger<MessageDispatcher> logger;
-    private readonly IArbitrer arbitrer;
-    private readonly IServiceProvider provider;
+    private readonly ILogger<MessageDispatcher> _logger;
+    private readonly IArbitrer _arbitrer;
+    private readonly IServiceProvider _provider;
 
     private ServiceBusClient _client;
+    private ServiceBusAdministrationClient _adminclient;
     private ServiceBusSender _sender;
     private ServiceBusSessionProcessor _receiver;
     
     private List<string> _subscriptions = new List<string>();
     private readonly SHA256 _hasher = SHA256.Create();
 
-    private readonly MessageDispatcherOptions options;
+    private readonly MessageDispatcherOptions _options;
 
     public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IArbitrer arbitrer, IServiceProvider provider)
     {
-      this.options = options.Value;
-      this.logger = logger;
-      this.arbitrer = arbitrer;
-      this.provider = provider;
+      this._options = options.Value;
+      this._logger = logger;
+      this._arbitrer = arbitrer;
+      this._provider = provider;
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async  Task StartAsync(CancellationToken cancellationToken)
     {
-      if (_connection == null)
+      if (_receiver == null)
       {
-        logger.LogInformation($"ARBITRER: Creating RabbitMQ Conection to '{options.HostName}'...");
-        var factory = new ConnectionFactory
-        {
-          HostName = options.HostName,
-          UserName = options.UserName,
-          Password = options.Password,
-          VirtualHost = options.VirtualHost,
-          Port = options.Port,
-          DispatchConsumersAsync = true,
-        };
-
-        _connection = factory.CreateConnection();
-        _channel = _connection.CreateModel();
-        _channel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
-
-        logger.LogInformation($"ARBITRER: ready !");
+        _logger.LogInformation($"ARBITRER: Creating ServiceBus connection...");
+        _client = new ServiceBusClient(_options.ConnectionString);
+        _adminclient = new ServiceBusAdministrationClient(_options.ConnectionString);
+        _logger.LogInformation($"ARBITRER: connected !");
       }
 
+      var notificationQueue =  $"{this._options.QueueName}.Notifications";
+      var messageQueue = $"{this._options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
+      
 
-      foreach (var t in arbitrer.GetLocalRequestsTypes())
+      _logger.LogInformation($"ARBITRER: registering processors");
+      foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
         var isNotification = typeof(INotification).IsAssignableFrom((t));
+        if (!await _adminclient.QueueExistsAsync(t.TypeQueueName(), cancellationToken))
+        {
+          _adminclient.CreateQueueAsync(new CreateQueueOptions(){ EnablePartitioning = })
+        }
         var queuename = $"{t.TypeQueueName()}${(isNotification ? Guid.NewGuid().ToString() : "")}";
 
-        _channel.QueueDeclare(queue: queuename, durable: options.Durable, exclusive: isNotification, autoDelete: options.AutoDelete, arguments: null);
+
+
+        var p = _client.CreateProcessor(Consts.ArbitrerTopicName, queuename);
+        p.
+        
+        _channel.QueueDeclare(queue: queuename, durable: _options.Durable, exclusive: isNotification, autoDelete: _options.AutoDelete, arguments: null);
         _channel.QueueBind(queuename, Consts.ArbitrerExchangeName, t.TypeQueueName());
 
 
@@ -82,6 +86,7 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
       }
 
       _channel.BasicQos(0, 1, false);
+      _logger.LogInformation($"ARBITRER: ready!");
       return Task.CompletedTask;
     }
 
@@ -89,12 +94,12 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
     {
       var msg = ea.Body.ToArray();
 
-      if (options.DeDuplicationEnabled)
+      if (_options.DeDuplicationEnabled)
       {
         var hash = msg.GetHash(_hasher);
         if (_deduplicationcache.Contains(hash))
         {
-          logger.LogDebug($"duplicated message received : {ea.Exchange}/{ea.RoutingKey}");
+          _logger.LogDebug($"duplicated message received : {ea.Exchange}/{ea.RoutingKey}");
           return;
         }
 
@@ -104,19 +109,19 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
         // Do not await this task
         Task.Run(async () =>
         {
-          await Task.Delay(options.DeDuplicationTTL);
+          await Task.Delay(_options.DeDuplicationTTL);
           lock (_deduplicationcache)
             _deduplicationcache.Remove(hash);
         });
       }
 
-      logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
-      var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
+      _logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
+      var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), _options.SerializerSettings);
 
       var replyProps = _channel.CreateBasicProperties();
       replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
 
-      var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
+      var mediator = _provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
       try
       {
         var arbitrer = mediator as ArbitredMediatr;
@@ -126,7 +131,7 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
       }
       catch (Exception ex)
       {
-        logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
+        _logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
       }
       finally
       {
@@ -136,24 +141,24 @@ namespace Arbitrer.Azure.Messaging.ServiceBus
     private async Task ConsumeChannelMessage<T>(object sender, BasicDeliverEventArgs ea)
     {
       var msg = ea.Body.ToArray();
-      logger.LogDebug("Elaborating message : {0}", Encoding.UTF8.GetString(msg));
-      var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
+      _logger.LogDebug("Elaborating message : {0}", Encoding.UTF8.GetString(msg));
+      var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), _options.SerializerSettings);
 
       var replyProps = _channel.CreateBasicProperties();
       replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
 
-      var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
+      var mediator = _provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
       string responseMsg = null;
       try
       {
         var response = await mediator.Send(message);
-        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage {Content = response, Status = Messages.StatusEnum.Ok}, options.SerializerSettings);
-        logger.LogDebug("Elaborating sending response : {0}", responseMsg);
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage {Content = response, Status = Messages.StatusEnum.Ok}, _options.SerializerSettings);
+        _logger.LogDebug("Elaborating sending response : {0}", responseMsg);
       }
       catch (Exception ex)
       {
-        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage {Exception = ex, Status = Messages.StatusEnum.Exception}, options.SerializerSettings);
-        logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage {Exception = ex, Status = Messages.StatusEnum.Exception}, _options.SerializerSettings);
+        _logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
       }
       finally
       {
