@@ -1,33 +1,32 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer", "Arbitrer\Arbitrer.csproj", "{E1E567F0-1BDF-4DE9-86F8-12E6CAFEE1E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbitrer", "Arbitrer\Arbitrer.csproj", "{E1E567F0-1BDF-4DE9-86F8-12E6CAFEE1E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.RabbitMQ", "Arbitrer.RabbitMQ\Arbitrer.RabbitMQ.csproj", "{7BC4AE47-FEB5-4404-B027-A30FAF581833}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbitrer.RabbitMQ", "Arbitrer.RabbitMQ\Arbitrer.RabbitMQ.csproj", "{7BC4AE47-FEB5-4404-B027-A30FAF581833}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{3AA78ADA-0BD6-43C1-A215-E2608D090B27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cqrs.models", "tests\cqrs.models\cqrs.models.csproj", "{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cqrs.models", "tests\cqrs.models\cqrs.models.csproj", "{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "receiver", "tests\receiver\receiver.csproj", "{ABCBBD73-93A4-41B6-88AA-66B7EC20B9EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "receiver", "tests\receiver\receiver.csproj", "{ABCBBD73-93A4-41B6-88AA-66B7EC20B9EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sender", "tests\sender\sender.csproj", "{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sender", "tests\sender\sender.csproj", "{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20", "Arbitrer.standard20\Arbitrer.standard20.csproj", "{65FF55D5-02C0-4C59-B5A1-F72B421DAE1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbitrer.standard20", "Arbitrer.standard20\Arbitrer.standard20.csproj", "{65FF55D5-02C0-4C59-B5A1-F72B421DAE1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.RabbitMQ", "Arbitrer.standard20.RabbitMQ\Arbitrer.standard20.RabbitMQ.csproj", "{1E39B1AB-19E4-4049-A658-7F40B603FB43}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbitrer.standard20.RabbitMQ", "Arbitrer.standard20.RabbitMQ\Arbitrer.standard20.RabbitMQ.csproj", "{1E39B1AB-19E4-4049-A658-7F40B603FB43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.Kafka", "Arbitrer.Kafka\Arbitrer.Kafka.csproj", "{52E67D98-DE21-4434-AB34-5FF4FB70C5E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbitrer.Kafka", "Arbitrer.Kafka\Arbitrer.Kafka.csproj", "{52E67D98-DE21-4434-AB34-5FF4FB70C5E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.Kafka", "Arbitrer.standard20.Kafka\Arbitrer.standard20.Kafka.csproj", "{94A62A6F-3235-4917-98CE-B13998E01284}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E1E567F0-1BDF-4DE9-86F8-12E6CAFEE1E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -62,10 +61,20 @@ Global
 		{52E67D98-DE21-4434-AB34-5FF4FB70C5E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52E67D98-DE21-4434-AB34-5FF4FB70C5E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52E67D98-DE21-4434-AB34-5FF4FB70C5E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94A62A6F-3235-4917-98CE-B13998E01284}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94A62A6F-3235-4917-98CE-B13998E01284}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94A62A6F-3235-4917-98CE-B13998E01284}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94A62A6F-3235-4917-98CE-B13998E01284}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A3CB6BBD-11F3-4F4F-A2F6-812BF6C62858} = {3AA78ADA-0BD6-43C1-A215-E2608D090B27}
 		{ABCBBD73-93A4-41B6-88AA-66B7EC20B9EA} = {3AA78ADA-0BD6-43C1-A215-E2608D090B27}
 		{D5052EFA-40F7-4F73-BE0D-F0BDA3130DCB} = {3AA78ADA-0BD6-43C1-A215-E2608D090B27}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EA2AB956-E48F-42AE-B669-D12BB549726A}
 	EndGlobalSection
 EndGlobal

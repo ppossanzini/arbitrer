@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Authors>Paolo Possanzini, Alessandro Esposito, Teamdev s.r.l.</Authors>
+    <Description>RPC extensions for mediatr via pipeline using Apache Kafka</Description>
+    <Copyright>Copyright Paolo Possanzini</Copyright>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Features>strict</Features>
+    <PackageTags>mediator;request;response;queries;commands;notifications;rpc;kafka</PackageTags>
+    <!-- <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\Arbitrer.snk</AssemblyOriginatorKeyFile> -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+    <RootNamespace>arbitrer.kafka</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" Version="2.0.2" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Arbitrer.Kafka\consts.cs">
+      <Link>consts.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer.Kafka\Extensions\Extensions.cs">
+      <Link>Extensions\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer.Kafka\MessageDispatcher.cs">
+      <Link>MessageDispatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer.Kafka\MessageDispatcherOptions.cs">
+      <Link>MessageDispatcherOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer.Kafka\RequestsManager.cs">
+      <Link>RequestsManager.cs</Link>
+    </Compile>
+    <Compile Include="..\Arbitrer.Kafka\KafkaMessage.cs">
+      <Link>KafkaMessage.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Arbitrer.standard20\Arbitrer.standard20.csproj" />
+  </ItemGroup>
+  
+</Project>
