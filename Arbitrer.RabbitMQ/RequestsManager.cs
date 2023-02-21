@@ -18,7 +18,7 @@ namespace Arbitrer.RabbitMQ
 {
   public class RequestsManager : IHostedService
   {
-    private readonly ILogger<MessageDispatcher> logger;
+    private readonly ILogger<RequestsManager> logger;
     private readonly IArbitrer arbitrer;
     private readonly IServiceProvider provider;
 
@@ -30,7 +30,7 @@ namespace Arbitrer.RabbitMQ
 
     private readonly MessageDispatcherOptions options;
 
-    public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IArbitrer arbitrer, IServiceProvider provider)
+    public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<RequestsManager> logger, IArbitrer arbitrer, IServiceProvider provider)
     {
       this.options = options.Value;
       this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -63,7 +63,7 @@ namespace Arbitrer.RabbitMQ
 
       foreach (var t in arbitrer.GetLocalRequestsTypes())
       {
-        var isNotification = typeof(INotification).IsAssignableFrom((t));
+        var isNotification = typeof(INotification).IsAssignableFrom(t);
         var queuename = $"{t.TypeQueueName()}${(isNotification ? Guid.NewGuid().ToString() : "")}";
 
         _channel.QueueDeclare(queue: queuename, durable: options.Durable, exclusive: isNotification, autoDelete: options.AutoDelete, arguments: null);
