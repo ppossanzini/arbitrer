@@ -103,7 +103,6 @@ Of course you will have some processes with requests declared **Local** and othe
 
 # Arbitrer with RabbitMQ
 
-You can use Arbitrer with RabbitMQ
 
 ## Installing Arbitrer RabbitMQ extension.
 
@@ -141,9 +140,41 @@ or if you prefer use appsettings configuration
 ```
 
 
-# Arbitrer with Kafka
+# Arbitrer with Kafka (Experimental)
 
-Coming soon. 
+## Installing Arbitrer Kafka extension.
+
+```
+    Install-Package Arbitrer.Kafka
+```
+    
+Or via the .NET Core command line interface:
+
+```
+    dotnet add package Arbitrer.Kafka
+```
+
+
+## Configuring Kafka Extension. 
+
+Once installed you need to configure Kafka extension. 
+
+```
+    services.AddArbitrerKafkaMessageDispatcher(opt =>
+    {
+      opt.BootstrapServers = "localhost:9092";
+    });
+    services.ResolveArbitrerCalls();
+```
+
+or if you prefer use appsettings configuration 
+
+```
+    services.AddArbitrerKafkaMessageDispatcher(opt => context.Configuration.GetSection("kafka").Bind(opt));
+    services.ResolveArbitrerCalls();
+```
+
+
 
 # Arbitrer with Azure Message Queues
 
