@@ -88,7 +88,7 @@ namespace Arbitrer.Kafka
 
 
       var tcs = new TaskCompletionSource<string>();
-      var rr = _callbackMapper.TryAdd(correlationId, tcs);
+      _callbackMapper.TryAdd(correlationId, tcs);
 
       await _producer.ProduceAsync(
         topic: typeof(TRequest).TypeQueueName(),
@@ -97,8 +97,8 @@ namespace Arbitrer.Kafka
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
 
-      var r = JsonConvert.DeserializeObject<KafkaReply<ResponseMessage<TResponse>>>(result, this._options.SerializerSettings);
-      return r!.Reply;
+      var response = JsonConvert.DeserializeObject<KafkaReply<ResponseMessage<TResponse>>>(result, this._options.SerializerSettings);
+      return response!.Reply;
     }
 
     public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
