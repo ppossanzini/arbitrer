@@ -12,8 +12,6 @@ using System.Threading.Tasks;
 using System;
 using Arbitrer.Messages;
 using System.Threading;
-using System.Runtime.CompilerServices;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Arbitrer.Kafka
 {
@@ -98,7 +96,7 @@ namespace Arbitrer.Kafka
       var result = await tcs.Task;
 
       var response = JsonConvert.DeserializeObject<KafkaReply<ResponseMessage<TResponse>>>(result, this._options.SerializerSettings);
-      return response!.Reply;
+      return response.Reply;
     }
 
     public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification

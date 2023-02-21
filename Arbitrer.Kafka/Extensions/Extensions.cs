@@ -48,8 +48,10 @@ namespace Arbitrer
 
     public static async void DeleteTopicAsync(this IServiceProvider services, MessageDispatcherOptions options, string topicName)
     {
-      using var adminClient = new AdminClientBuilder(options.GetAdminConfig()).Build();
-      await adminClient.DeleteTopicsAsync(new string[] { topicName });
+      using (var adminClient = new AdminClientBuilder(options.GetAdminConfig()).Build())
+      {
+        await adminClient.DeleteTopicsAsync(new string[] { topicName });
+      }
     }
   }
 }

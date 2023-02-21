@@ -70,7 +70,7 @@ namespace Arbitrer.Kafka
           notificationsSubscriptions.Add(t.TypeQueueName());
           var consumermethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelNotification", BindingFlags.Instance | BindingFlags.NonPublic)
-            !.MakeGenericMethod(t);
+            .MakeGenericMethod(t);
           _methods.Add(t.TypeQueueName(), consumermethod);
         }
         else
@@ -78,7 +78,7 @@ namespace Arbitrer.Kafka
           requestSubscriptions.Add(t.TypeQueueName());
           var consumermethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)
-            !.MakeGenericMethod(t);
+            .MakeGenericMethod(t);
           _methods.Add(t.TypeQueueName(), consumermethod);
         }
       }
@@ -92,7 +92,8 @@ namespace Arbitrer.Kafka
         {
           var notification = _requestConsumer.Consume();
           _methods.TryGetValue(notification.Topic, out MethodInfo method);
-          method!.Invoke(this, new object[] {notification.Message.Value});
+          if(method != null)
+          method.Invoke(this, new object[] {notification.Message.Value});
         }
       }) {IsBackground = true};
       _requestConsumerThread.Start();
@@ -103,7 +104,8 @@ namespace Arbitrer.Kafka
         {
           var notification = _notificationConsumer.Consume();
           _methods.TryGetValue(notification.Topic, out MethodInfo method);
-          method!.Invoke(this, new object[] {notification.Message.Value});
+          if(method != null)
+          method.Invoke(this, new object[] {notification.Message.Value});
         }
       }) {IsBackground = true};
       
