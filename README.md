@@ -140,7 +140,7 @@ or if you prefer use appsettings configuration
 ```
 
 
-# Arbitrer with Kafka (Experimental)
+# Arbitrer with Kafka
 
 ## Installing Arbitrer Kafka extension.
 
