@@ -23,6 +23,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbitrer.Kafka", "Arbitrer.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.Kafka", "Arbitrer.standard20.Kafka\Arbitrer.standard20.Kafka.csproj", "{94A62A6F-3235-4917-98CE-B13998E01284}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.gRPC", "Arbitrer.gRPC\Arbitrer.gRPC.csproj", "{7D7F1061-28DB-409E-88B2-633595FD5F42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.gRPC", "Arbitrer.standard20.gRPC\Arbitrer.standard20.gRPC.csproj", "{377E907F-9FDA-473C-AA4C-53DD74D42273}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +69,14 @@ Global
 		{94A62A6F-3235-4917-98CE-B13998E01284}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94A62A6F-3235-4917-98CE-B13998E01284}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94A62A6F-3235-4917-98CE-B13998E01284}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D7F1061-28DB-409E-88B2-633595FD5F42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D7F1061-28DB-409E-88B2-633595FD5F42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D7F1061-28DB-409E-88B2-633595FD5F42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D7F1061-28DB-409E-88B2-633595FD5F42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{377E907F-9FDA-473C-AA4C-53DD74D42273}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{377E907F-9FDA-473C-AA4C-53DD74D42273}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{377E907F-9FDA-473C-AA4C-53DD74D42273}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{377E907F-9FDA-473C-AA4C-53DD74D42273}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
