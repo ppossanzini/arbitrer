@@ -17,6 +17,8 @@ namespace Arbitrer
         services.Configure<ArbitrerOptions>(configure);
       services.AddScoped(typeof(IPipelineBehavior<,>), typeof(Pipelines.ArbitrerPipeline<,>));
       services.AddSingleton<IArbitrer, Arbitrer>();
+        
+      services.AddTransient<IMediator, ArbitredMediatr>();
       return services;
     }
 
