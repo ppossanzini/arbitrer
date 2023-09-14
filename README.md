@@ -16,6 +16,18 @@ Microservices and patterns like CQRS are very powerfull combination. In this sce
 Arbitrer change Mediatr behaviour and let you decide which call needs to be in-process and which needs to be Out-of-process and dispatched remotely, via a configuration without changing a single row of your code.
 
 
+## Versioning
+
+Arbitrer follow MediatR versioning.
+
+   
+ ```
+ Arbitrer v.12.x is for MediatR from 12.x
+ Arbitrer v.9.0 is for MediatR from 9.x to 11.x
+ ```
+   
+ 
+
 ## Installation
 
 You should install [Arbitrer with NuGet](https://www.nuget.org/packages/arbitrer):
