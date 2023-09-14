@@ -8,7 +8,7 @@ using MediatR;
 IHost host = Host.CreateDefaultBuilder(args)
   .ConfigureServices((context, services) =>
   {
-    services.AddMediatR(cfg => cfg.Using<ArbitredMediatr>(), Assembly.GetExecutingAssembly());
+    services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()); });
     services.AddArbitrer(opt =>
     {
       opt.Behaviour = ArbitrerBehaviourEnum.Explicit;
