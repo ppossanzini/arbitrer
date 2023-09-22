@@ -8,7 +8,7 @@ namespace Arbitrer.Pipelines
   
 
 
-  public class ArbitrerPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
+  public class ArbitrerPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
   {
 
     private readonly IArbitrer arbitrer;

@@ -30,7 +30,7 @@ namespace Arbitrer
     public bool HasRemoteHandler(Type t) => this.options.RemoteRequests.Any(i => i == t);
 
 
-    public HandlerLocation GetLocation<T>() => this.GetLocation(typeof(T));
+    public HandlerLocation GetLocation<T>() where T : IBaseRequest => this.GetLocation(typeof(T));
 
     public HandlerLocation GetLocation(Type t)
     {
@@ -42,7 +42,7 @@ namespace Arbitrer
       }
     }
 
-    public async Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request)
+    public async Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request) where TRequest : IRequest<TResponse>
     {
       logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).TypeQueueName()}");
       var result = await messageDispatcher.Dispatch<TRequest, TResponse>(request);
@@ -53,7 +53,7 @@ namespace Arbitrer
         throw (result.Exception ?? new Exception("Error executing remote command")) as Exception;
       }
 
-      return (TResponse)result.Content;
+      return (TResponse) result.Content;
     }
 
     public async Task SendRemoteNotification<TRequest>(TRequest request) where TRequest : INotification

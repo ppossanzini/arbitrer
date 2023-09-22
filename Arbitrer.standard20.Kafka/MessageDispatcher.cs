@@ -74,6 +74,7 @@ namespace Arbitrer.Kafka
     }
 
     public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+    where TRequest: IRequest<TResponse>
     {
       var correlationId = Guid.NewGuid().ToString();
       var message = JsonConvert.SerializeObject(new KafkaMessage<TRequest>

@@ -36,9 +36,6 @@
     <Compile Include="..\Arbitrer.Kafka\Extensions\Extensions.cs">
       <Link>Extensions\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\Arbitrer.Kafka\MessageDispatcher.cs">
-      <Link>MessageDispatcher.cs</Link>
-    </Compile>
     <Compile Include="..\Arbitrer.Kafka\MessageDispatcherOptions.cs">
       <Link>MessageDispatcherOptions.cs</Link>
     </Compile>

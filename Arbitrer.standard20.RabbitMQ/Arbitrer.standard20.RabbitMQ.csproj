@@ -35,9 +35,6 @@
     <Compile Include="..\Arbitrer.RabbitMQ\Extensions\Extensions.cs">
       <Link>Extensions\Extensions.cs</Link>
     </Compile>
-    <Compile Include="..\Arbitrer.RabbitMQ\MessageDispatcher.cs">
-      <Link>MessageDispatcher.cs</Link>
-    </Compile>
     <Compile Include="..\Arbitrer.RabbitMQ\MessageDispatcherOptions.cs">
       <Link>MessageDispatcherOptions.cs</Link>
     </Compile>

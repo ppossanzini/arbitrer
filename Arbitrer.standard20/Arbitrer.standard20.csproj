@@ -32,9 +32,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Arbitrer\Arbitrer.cs">
-      <Link>Arbitrer.cs</Link>
-    </Compile>
     <Compile Include="..\Arbitrer\ArbitrerOptions.cs">
       <Link>ArbitrerOptions.cs</Link>
     </Compile>
@@ -44,20 +41,11 @@
     <Compile Include="..\Arbitrer\extensions\ArbitrerExtensions.cs">
       <Link>extensions\ArbitrerExtensions.cs</Link>
     </Compile>
-    <Compile Include="..\Arbitrer\IArbitrer.cs">
-      <Link>IArbitrer.cs</Link>
-    </Compile>
-    <Compile Include="..\Arbitrer\IExternalMessageDispatcher.cs">
-      <Link>IExternalMessageDispatcher.cs</Link>
-    </Compile>
     <Compile Include="..\Arbitrer\InvalidHandlerException.cs">
       <Link>InvalidHandlerException.cs</Link>
     </Compile>
     <Compile Include="..\Arbitrer\messages\ResponseMessage.cs">
       <Link>messages\ResponseMessage.cs</Link>
-    </Compile>
-    <Compile Include="..\Arbitrer\pipelines\ArbitrerPipeline.cs">
-      <Link>pipelines\ArbitrerPipeline.cs</Link>
     </Compile>
   </ItemGroup>
 </Project>
