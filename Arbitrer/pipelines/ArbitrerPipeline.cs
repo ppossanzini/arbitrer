@@ -1,6 +1,9 @@
+using System;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Arbitrer.Pipelines
 {
@@ -12,31 +15,49 @@ namespace Arbitrer.Pipelines
   {
 
     private readonly IArbitrer arbitrer;
+    private readonly ILogger<ArbitrerPipeline<TRequest, TResponse>> _logger;
 
-    public ArbitrerPipeline(IArbitrer arbitrer)
+    public ArbitrerPipeline(IArbitrer arbitrer, ILogger<ArbitrerPipeline<TRequest,TResponse>> logger)
     {
       this.arbitrer = arbitrer;
+      _logger = logger;
     }
 
     // Implementation for legacy version for .netstandard 2.0 compatibility
     public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
     {
-      switch (arbitrer.GetLocation<TRequest>())
+      try
       {
-        case HandlerLocation.Local : return await next().ConfigureAwait(false);
-        case HandlerLocation.Remote : return await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request);
-        default: throw new InvalidHandlerException();
+        switch (arbitrer.GetLocation<TRequest>())
+        {
+          case HandlerLocation.Local: return await next().ConfigureAwait(false);
+          case HandlerLocation.Remote: return await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request);
+          default: throw new InvalidHandlerException();
+        }
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex.Message, ex);
+        throw;
       }
     }
 
     // Implementation for version > 11
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-      switch (arbitrer.GetLocation<TRequest>())
+      try
       {
-        case HandlerLocation.Local : return await next().ConfigureAwait(false);
-        case HandlerLocation.Remote : return await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request);
-        default: throw new InvalidHandlerException();
+        switch (arbitrer.GetLocation<TRequest>())
+        {
+          case HandlerLocation.Local: return await next().ConfigureAwait(false);
+          case HandlerLocation.Remote: return await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request);
+          default: throw new InvalidHandlerException();
+        }
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex.Message, ex);
+        throw;
       }
     }
   }
