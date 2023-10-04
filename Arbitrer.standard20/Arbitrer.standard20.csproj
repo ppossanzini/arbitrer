@@ -15,7 +15,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <Deterministic>true</Deterministic>
-    <RootNamespace>arbitrer</RootNamespace>
+    <RootNamespace>Arbitrer</RootNamespace>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
@@ -37,9 +37,6 @@
     </Compile>
     <Compile Include="..\Arbitrer\Attributes\ArbitrerQueueNameAttribute.cs">
       <Link>Attributes\ArbitrerQueueNameAttribute.cs</Link>
-    </Compile>
-    <Compile Include="..\Arbitrer\extensions\ArbitrerExtensions.cs">
-      <Link>extensions\ArbitrerExtensions.cs</Link>
     </Compile>
     <Compile Include="..\Arbitrer\InvalidHandlerException.cs">
       <Link>InvalidHandlerException.cs</Link>

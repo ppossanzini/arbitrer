@@ -27,6 +27,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.gRPC", "Arbitrer.g
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.gRPC", "Arbitrer.standard20.gRPC\Arbitrer.standard20.gRPC.csproj", "{377E907F-9FDA-473C-AA4C-53DD74D42273}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{CC9A79DB-205E-4CA0-B8C8-FFDDACF0FB80}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.DependencyInjection", "Arbitrer.standard20.DependencyInjection\Arbitrer.standard20.DependencyInjection.csproj", "{00238E15-9647-4313-88AF-E5A0017FA59A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.Autofac", "Arbitrer.standard20.Autofac\Arbitrer.standard20.Autofac.csproj", "{DBA0B1BF-746A-41B9-A87B-238EAD546AA2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +83,14 @@ Global
 		{377E907F-9FDA-473C-AA4C-53DD74D42273}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{377E907F-9FDA-473C-AA4C-53DD74D42273}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{377E907F-9FDA-473C-AA4C-53DD74D42273}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00238E15-9647-4313-88AF-E5A0017FA59A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00238E15-9647-4313-88AF-E5A0017FA59A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00238E15-9647-4313-88AF-E5A0017FA59A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00238E15-9647-4313-88AF-E5A0017FA59A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBA0B1BF-746A-41B9-A87B-238EAD546AA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBA0B1BF-746A-41B9-A87B-238EAD546AA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBA0B1BF-746A-41B9-A87B-238EAD546AA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBA0B1BF-746A-41B9-A87B-238EAD546AA2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
