@@ -73,9 +73,21 @@ namespace Arbitrer.RabbitMQ
         var consumer = new AsyncEventingBasicConsumer(_channel);
 
         var consumermethod = typeof(RequestsManager)
-          .GetMethod(isNotification ? "ConsumeChannelNotification" : "ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(t);
+          .GetMethod(isNotification ? "ConsumeChannelNotification" : "ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)
+          .MakeGenericMethod(t);
 
-        consumer.Received += async (s, ea) => { await (Task) consumermethod.Invoke(this, new object[] {s, ea}); };
+        consumer.Received += async (s, ea) =>
+        {
+          try
+          {
+            await (Task)consumermethod.Invoke(this, new object[] { s, ea });
+          }
+          catch (Exception e)
+          {
+            logger.LogError(e.Message, e);
+            throw;
+          }
+        };
         _channel.BasicConsume(queue: queuename, autoAck: isNotification, consumer: consumer);
       }
 
@@ -142,23 +154,25 @@ namespace Arbitrer.RabbitMQ
 
       var replyProps = _channel.CreateBasicProperties();
       replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
-
-      var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
       string responseMsg = null;
       try
       {
+        var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
         var response = await mediator.Send(message);
-        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage {Content = response, Status = Messages.StatusEnum.Ok}, options.SerializerSettings);
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Content = response, Status = Messages.StatusEnum.Ok },
+          options.SerializerSettings);
         logger.LogDebug("Elaborating sending response : {0}", responseMsg);
       }
       catch (Exception ex)
       {
-        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage {Exception = ex, Status = Messages.StatusEnum.Exception}, options.SerializerSettings);
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Exception = ex, Status = Messages.StatusEnum.Exception },
+          options.SerializerSettings);
         logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
       }
       finally
       {
-        _channel.BasicPublish(exchange: "", routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps, body: Encoding.UTF8.GetBytes(responseMsg ?? ""));
+        _channel.BasicPublish(exchange: "", routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps,
+          body: Encoding.UTF8.GetBytes(responseMsg ?? ""));
         _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
       }
     }

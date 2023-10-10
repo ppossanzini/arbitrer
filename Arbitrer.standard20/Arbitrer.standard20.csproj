@@ -45,4 +45,9 @@
       <Link>messages\ResponseMessage.cs</Link>
     </Compile>
   </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Extensions.Logging">
+      <HintPath>..\..\..\..\.nuget\packages\microsoft.extensions.logging\6.0.0\lib\netstandard2.0\Microsoft.Extensions.Logging.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
