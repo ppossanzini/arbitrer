@@ -15,7 +15,7 @@ namespace Arbitrer
         configure(options);
         var opt = Options.Create<ArbitrerOptions>(options);
 
-        builder.RegisterType<IOptions<ArbitrerOptions>>().SingleInstance().UsingConstructor(() => opt);
+        builder.RegisterInstance(opt).SingleInstance();
       }
 
       builder.RegisterType<Arbitrer>().As<IArbitrer>().SingleInstance();
