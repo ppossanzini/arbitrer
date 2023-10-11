@@ -9,9 +9,9 @@ namespace Arbitrer.Pipelines
   public class ArbitrerPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
   {
     private readonly IArbitrer _arbitrer;
-    private readonly ILogger<ArbitrerPipeline<TRequest, TResponse>> _logger;
+    private readonly ILogger<Arbitrer> _logger;
 
-    public ArbitrerPipeline(IArbitrer arbitrer, ILogger<ArbitrerPipeline<TRequest, TResponse>> logger)
+    public ArbitrerPipeline(IArbitrer arbitrer, ILogger<Arbitrer> logger)
     {
       this._arbitrer = arbitrer;
       _logger = logger;

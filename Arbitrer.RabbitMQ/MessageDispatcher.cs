@@ -106,7 +106,7 @@ namespace Arbitrer.RabbitMQ
       return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
     }
 
-    public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
+    public Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
@@ -118,6 +118,8 @@ namespace Arbitrer.RabbitMQ
         mandatory: false,
         body: Encoding.UTF8.GetBytes(message)
       );
+      
+      return Task.CompletedTask;
     }
 
 
