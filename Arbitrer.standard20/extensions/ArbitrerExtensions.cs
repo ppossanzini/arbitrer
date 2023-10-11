@@ -20,7 +20,35 @@ namespace Arbitrer
             .Where(i => i.FullName.StartsWith("MediatR.IRequestHandler"))
             .Select(i => i.GetGenericArguments()[0]).ToArray()
           ));
-      options.SetAsLocalRequests(localRequests.ToArray);
+      options.SetAsLocalRequests(() => localRequests);
+      return options;
+    }
+
+    public static ArbitrerOptions InferPublishedNotifications(this ArbitrerOptions options)
+    {
+      var localNotifications = Assembly.GetCallingAssembly()
+        .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
+          .GetTypes()
+          .SelectMany(t => t.GetInterfaces()
+            .Where(i => i.FullName.StartsWith("MediatR.INotification`"))
+            .Select(i => i.GetGenericArguments()[0]).ToArray()
+          ));
+
+      options.SetAsRemoteRequests(() => localNotifications);
+      return options;
+    }
+
+    public static ArbitrerOptions InferLocalNotifications(this ArbitrerOptions options)
+    {
+      var localNotifications = Assembly.GetCallingAssembly()
+        .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
+          .GetTypes()
+          .SelectMany(t => t.GetInterfaces()
+            .Where(i => i.FullName.StartsWith("MediatR.INotificationHandler"))
+            .Select(i => i.GetGenericArguments()[0]).ToArray()
+          ));
+
+      options.SetAsLocalRequests(() => localNotifications);
       return options;
     }
 
@@ -35,6 +63,7 @@ namespace Arbitrer
       options.LocalRequests.Add(typeof(T));
       return options;
     }
+
 
     public static ArbitrerOptions SetAsRemoteRequest<T>(this ArbitrerOptions options) where T : IBaseRequest
     {

@@ -34,6 +34,34 @@ namespace Arbitrer
       options.SetAsLocalRequests(localRequests.ToArray);
       return options;
     }
+    
+    public static ArbitrerOptions InferPublishedNotifications(this ArbitrerOptions options)
+    {
+      var localNotifications = Assembly.GetCallingAssembly()
+        .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
+          .GetTypes()
+          .SelectMany(t => t.GetInterfaces()
+            .Where(i => i.FullName!.StartsWith("MediatR.INotification`"))
+            .Select(i => i.GetGenericArguments()[0]).ToArray()
+          ));
+
+      options.SetAsRemoteRequests(() => localNotifications);
+      return options;
+    }
+
+    public static ArbitrerOptions InferLocalNotifications(this ArbitrerOptions options)
+    {
+      var localNotifications = Assembly.GetCallingAssembly()
+        .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
+          .GetTypes()
+          .SelectMany(t => t.GetInterfaces()
+            .Where(i => i.FullName!.StartsWith("MediatR.INotificationHandler"))
+            .Select(i => i.GetGenericArguments()[0]).ToArray()
+          ));
+
+      options.SetAsLocalRequests(() => localNotifications);
+      return options;
+    }
 
     public static ArbitrerOptions SetAsLocalRequest<T>(this ArbitrerOptions options) where T : IBaseRequest
     {
