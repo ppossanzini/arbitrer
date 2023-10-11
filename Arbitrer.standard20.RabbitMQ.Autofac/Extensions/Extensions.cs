@@ -5,18 +5,23 @@ using Arbitrer.RabbitMQ;
 using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Arbitrer
 {
   public static class Extensions
   {
-    public static ContainerBuilder AddArbitrerRabbitMQMessageDispatcher(this ContainerBuilder services, Action<MessageDispatcherOptions> config)
+    public static ContainerBuilder AddArbitrerRabbitMQMessageDispatcher(this ContainerBuilder services, Action<MessageDispatcherOptions> config,
+      ILoggerFactory loggerFactory)
     {
       var options = new MessageDispatcherOptions();
       config(options);
       services.RegisterInstance(Options.Create(options)).SingleInstance();
       services.RegisterType<MessageDispatcher>().As<IExternalMessageDispatcher>().SingleInstance();
+        
+      services.RegisterInstance(LoggerFactoryExtensions.CreateLogger<MessageDispatcher>(loggerFactory)).As<ILogger<MessageDispatcher>>();
+      services.RegisterInstance(LoggerFactoryExtensions.CreateLogger<RequestsManager>(loggerFactory)).As<ILogger<RequestsManager>>();
       return services;
     }
 
@@ -34,10 +39,10 @@ namespace Arbitrer
       {
         sBuilder.Append(data[i].ToString("x2"));
       }
-      
+
       return sBuilder.ToString();
     }
-    
+
     public static string GetHash(this byte[] input, HashAlgorithm hashAlgorithm)
     {
       byte[] data = hashAlgorithm.ComputeHash(input);
@@ -46,7 +51,7 @@ namespace Arbitrer
       {
         sBuilder.Append(data[i].ToString("x2"));
       }
-      
+
       return sBuilder.ToString();
     }
   }
