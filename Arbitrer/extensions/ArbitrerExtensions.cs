@@ -28,20 +28,20 @@ namespace Arbitrer
         .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
           .GetTypes()
           .SelectMany(t => t.GetInterfaces()
-            .Where(i => i.FullName!.StartsWith("MediatR.IRequestHandler"))
+            .Where(i => i is { FullName: { } } && i.FullName.StartsWith("MediatR.IRequestHandler"))
             .Select(i => i.GetGenericArguments()[0]).ToArray()
           ));
       options.SetAsLocalRequests(localRequests.ToArray);
       return options;
     }
-    
+
     public static ArbitrerOptions InferPublishedNotifications(this ArbitrerOptions options)
     {
       var localNotifications = Assembly.GetCallingAssembly()
         .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
           .GetTypes()
           .SelectMany(t => t.GetInterfaces()
-            .Where(i => i.FullName!.StartsWith("MediatR.INotification`"))
+            .Where(i => i is { FullName: { } } && i.FullName.StartsWith("MediatR.INotification`"))
             .Select(i => i.GetGenericArguments()[0]).ToArray()
           ));
 
@@ -55,7 +55,7 @@ namespace Arbitrer
         .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
           .GetTypes()
           .SelectMany(t => t.GetInterfaces()
-            .Where(i => i.FullName!.StartsWith("MediatR.INotificationHandler"))
+            .Where(i => i is { FullName: { } } && i.FullName.StartsWith("MediatR.INotificationHandler"))
             .Select(i => i.GetGenericArguments()[0]).ToArray()
           ));
 

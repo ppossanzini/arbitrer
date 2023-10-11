@@ -11,42 +11,39 @@ namespace Arbitrer
 {
   public static class ArbitrerExtensions
   {
-    public static ArbitrerOptions InferLocalRequests(this ArbitrerOptions options)
+    public static ArbitrerOptions InferLocalRequests(this ArbitrerOptions options, IEnumerable<Assembly> assemblies)
     {
-      var localRequests = Assembly.GetCallingAssembly()
-        .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
-          .GetTypes()
-          .SelectMany(t => t.GetInterfaces()
-            .Where(i => i.FullName.StartsWith("MediatR.IRequestHandler"))
-            .Select(i => i.GetGenericArguments()[0]).ToArray()
-          ));
+      var localRequests = assemblies.SelectMany(a => a
+        .GetTypes()
+        .SelectMany(t => t.GetInterfaces()
+          .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.IRequestHandler"))
+          .Select(i => i.GetGenericArguments()[0]).ToArray()
+        ));
       options.SetAsLocalRequests(() => localRequests);
       return options;
     }
 
-    public static ArbitrerOptions InferPublishedNotifications(this ArbitrerOptions options)
+    public static ArbitrerOptions InferPublishedNotifications(this ArbitrerOptions options, IEnumerable<Assembly> assemblies)
     {
-      var localNotifications = Assembly.GetCallingAssembly()
-        .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
-          .GetTypes()
-          .SelectMany(t => t.GetInterfaces()
-            .Where(i => i.FullName.StartsWith("MediatR.INotification`"))
-            .Select(i => i.GetGenericArguments()[0]).ToArray()
-          ));
+      var localNotifications = assemblies.SelectMany(a => a
+        .GetTypes()
+        .SelectMany(t => t.GetInterfaces()
+          .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.INotification`"))
+          .Select(i => i.GetGenericArguments()[0]).ToArray()
+        ));
 
       options.SetAsRemoteRequests(() => localNotifications);
       return options;
     }
 
-    public static ArbitrerOptions InferLocalNotifications(this ArbitrerOptions options)
+    public static ArbitrerOptions InferLocalNotifications(this ArbitrerOptions options, IEnumerable<Assembly> assemblies)
     {
-      var localNotifications = Assembly.GetCallingAssembly()
-        .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
-          .GetTypes()
-          .SelectMany(t => t.GetInterfaces()
-            .Where(i => i.FullName.StartsWith("MediatR.INotificationHandler"))
-            .Select(i => i.GetGenericArguments()[0]).ToArray()
-          ));
+      var localNotifications = assemblies.SelectMany(a => a
+        .GetTypes()
+        .SelectMany(t => t.GetInterfaces()
+          .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.INotificationHandler"))
+          .Select(i => i.GetGenericArguments()[0]).ToArray()
+        ));
 
       options.SetAsLocalRequests(() => localNotifications);
       return options;
