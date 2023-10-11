@@ -18,6 +18,8 @@ IHost host = Host.CreateDefaultBuilder(args)
         opt.SetAsLocalRequest<MediatRRequest5>();
         opt.SetAsLocalRequest<MediatRRequestWithException>();
         opt.SetAsLocalRequest<MediatRRequestWithHandlerException>();
+
+        opt.InferLocalRequests();
         opt.ListenForNotification<MediatorNotification1>();
       });
       // services.AddArbitrerRabbitMQMessageDispatcher(opt => context.Configuration.GetSection("rabbitmq").Bind(opt));

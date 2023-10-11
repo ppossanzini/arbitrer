@@ -11,6 +11,19 @@ namespace Arbitrer
 {
   public static class ArbitrerExtensions
   {
+    public static ArbitrerOptions InferLocalRequests(this ArbitrerOptions options)
+    {
+      var localRequests = Assembly.GetCallingAssembly()
+        .GetReferencedAssemblies().SelectMany(a => Assembly.Load(a)
+          .GetTypes()
+          .SelectMany(t => t.GetInterfaces()
+            .Where(i => i.FullName.StartsWith("MediatR.IRequestHandler"))
+            .Select(i => i.GetGenericArguments()[0]).ToArray()
+          ));
+      options.SetAsLocalRequests(localRequests.ToArray);
+      return options;
+    }
+
     public static ArbitrerOptions SetAsLocalRequest<T>(this ArbitrerOptions options) where T : IBaseRequest
     {
       options.LocalRequests.Add(typeof(T));
@@ -73,11 +86,12 @@ namespace Arbitrer
 
     public static string TypeQueueName(this Type t, StringBuilder sb = null)
     {
-      if(t.CustomAttributes.Count()>0){
+      if (t.CustomAttributes.Count() > 0)
+      {
         var attr = t.GetCustomAttribute<ArbitrerQueueNameAttribute>();
-        if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".","_");
+        if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".", "_");
       }
-      
+
       if (sb is null) sb = new StringBuilder();
       sb.Append(t.Namespace);
       sb.Append(".");
@@ -91,10 +105,11 @@ namespace Arbitrer
           ta.TypeQueueName(sb);
           sb.Append(",");
         }
+
         sb.Append("]");
       }
-      
-      return sb.ToString().Replace(",]","]").Replace(".","_");
+
+      return sb.ToString().Replace(",]", "]").Replace(".", "_");
     }
   }
 }
