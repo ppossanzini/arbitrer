@@ -122,13 +122,13 @@ namespace Arbitrer
 
     public static string TypeQueueName(this Type t, StringBuilder sb = null)
     {
-      if (t.CustomAttributes.Count() > 0)
+      if (t.CustomAttributes.Any())
       {
         var attr = t.GetCustomAttribute<ArbitrerQueueNameAttribute>();
         if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".", "_");
       }
 
-      if (sb is null) sb = new StringBuilder();
+      sb ??= new StringBuilder();
       sb.Append(t.Namespace);
       sb.Append(".");
       sb.Append(t.Name);
