@@ -7,17 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Arbitrer.Pipelines
 {
-
-  
-
-
   public class ArbitrerPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
   {
-
     private readonly IArbitrer arbitrer;
     private readonly ILogger<ArbitrerPipeline<TRequest, TResponse>> _logger;
 
-    public ArbitrerPipeline(IArbitrer arbitrer, ILogger<ArbitrerPipeline<TRequest,TResponse>> logger)
+    public ArbitrerPipeline(IArbitrer arbitrer, ILogger<ArbitrerPipeline<TRequest, TResponse>> logger)
     {
       this.arbitrer = arbitrer;
       _logger = logger;
@@ -37,7 +32,7 @@ namespace Arbitrer.Pipelines
       }
       catch (Exception ex)
       {
-        _logger.LogError(ex.Message, ex);
+        _logger.LogError(ex, ex.Message);
         throw;
       }
     }
@@ -56,7 +51,7 @@ namespace Arbitrer.Pipelines
       }
       catch (Exception ex)
       {
-        _logger.LogError(ex.Message, ex);
+        _logger.LogError(ex, ex.Message);
         throw;
       }
     }

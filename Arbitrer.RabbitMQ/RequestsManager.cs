@@ -84,7 +84,7 @@ namespace Arbitrer.RabbitMQ
           }
           catch (Exception e)
           {
-            logger.LogError(e.Message, e);
+            logger.LogError(e,e.Message);
             throw;
           }
         };
