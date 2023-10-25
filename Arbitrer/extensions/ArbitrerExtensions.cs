@@ -27,7 +27,7 @@ namespace Arbitrer
       var localRequests = assemblies.SelectMany(a => a
         .GetTypes()
         .SelectMany(t => t.GetInterfaces()
-          .Where(i => i is { FullName: { } } && i.FullName.StartsWith("MediatR.IRequestHandler"))
+          .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.IRequestHandler"))
           .Select(i => i.GetGenericArguments()[0]).ToArray()
         ));
       options.SetAsLocalRequests(localRequests.ToArray);
@@ -39,7 +39,7 @@ namespace Arbitrer
       var localNotifications = assemblies.SelectMany(a => a
         .GetTypes()
         .SelectMany(t => t.GetInterfaces()
-          .Where(i => i is { FullName: { } } && i.FullName.StartsWith("MediatR.INotification`"))
+          .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.INotification`"))
           .Select(i => i.GetGenericArguments()[0]).ToArray()
         ));
 
@@ -52,7 +52,7 @@ namespace Arbitrer
       var localNotifications = assemblies.SelectMany(a => a
         .GetTypes()
         .SelectMany(t => t.GetInterfaces()
-          .Where(i => i is { FullName: { } } && i.FullName.StartsWith("MediatR.INotificationHandler"))
+          .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.INotificationHandler"))
           .Select(i => i.GetGenericArguments()[0]).ToArray()
         ));
 
@@ -128,7 +128,7 @@ namespace Arbitrer
         if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".", "_");
       }
 
-      sb ??= new StringBuilder();
+      sb = sb ?? new StringBuilder();
       sb.Append(t.Namespace);
       sb.Append(".");
       sb.Append(t.Name);

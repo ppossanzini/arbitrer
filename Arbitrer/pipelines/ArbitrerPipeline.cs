@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Arbitrer.Pipelines
 {
-  public class ArbitrerPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : notnull
+  public class ArbitrerPipeline<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> //where TRequest : notnull
   {
     private readonly IArbitrer arbitrer;
     private readonly ILogger<ArbitrerPipeline<TRequest, TResponse>> _logger;

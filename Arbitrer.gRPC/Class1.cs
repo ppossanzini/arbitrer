@@ -1,5 +1,6 @@
-﻿namespace Arbitrer.gRPC;
-public class Class1
+﻿namespace Arbitrer.gRPC
 {
-
+  public class Class1
+  {
+  }
 }
