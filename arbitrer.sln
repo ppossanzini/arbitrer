@@ -31,6 +31,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.Autofac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.standard20.RabbitMQ.Autofac", "Arbitrer.standard20.RabbitMQ.Autofac\Arbitrer.standard20.RabbitMQ.Autofac.csproj", "{8FC7E8D7-F628-4D8B-8157-2A9C584F4EAE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.Autofac", "Arbitrer.Autofac\Arbitrer.Autofac.csproj", "{87C76B91-D332-4CFF-A304-E287F2657515}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.RabbitMQ.Autofac", "Arbitrer.RabbitMQ.Autofac\Arbitrer.RabbitMQ.Autofac.csproj", "{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +89,14 @@ Global
 		{8FC7E8D7-F628-4D8B-8157-2A9C584F4EAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FC7E8D7-F628-4D8B-8157-2A9C584F4EAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FC7E8D7-F628-4D8B-8157-2A9C584F4EAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{87C76B91-D332-4CFF-A304-E287F2657515}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{87C76B91-D332-4CFF-A304-E287F2657515}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{87C76B91-D332-4CFF-A304-E287F2657515}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{87C76B91-D332-4CFF-A304-E287F2657515}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

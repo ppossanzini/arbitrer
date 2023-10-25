@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Authors>Paolo Possanzini,Teamdev s.r.l.</Authors>
+        <Description>RPC extensions for mediatr via pipeline</Description>
+        <Copyright>Copyright Paolo Possanzini</Copyright>
+        <Features>strict</Features>
+        <PackageTags>mediator;request;response;queries;commands;notifications;rpc</PackageTags>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <MinVerTagPrefix>v</MinVerTagPrefix>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <Deterministic>true</Deterministic>
+        <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    </PropertyGroup>
+
+    
+    <ItemGroup>
+        <PackageReference Include="MediatR" Version="12.1.1" />
+        <PackageReference Include="Autofac" Version="7.1.0"/>
+        <PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Update="Extensions\Extensions.cs">
+        <Link>Extensions\Extensions.cs</Link>
+      </Compile>
+      <Compile Include="..\Arbitrer.RabbitMQ\consts.cs">
+        <Link>consts.cs</Link>
+      </Compile>
+      <Compile Include="..\Arbitrer.RabbitMQ\MessageDispatcherOptions.cs">
+        <Link>MessageDispatcherOptions.cs</Link>
+      </Compile>
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Arbitrer\Arbitrer.csproj" />
+    </ItemGroup>
+
+</Project>

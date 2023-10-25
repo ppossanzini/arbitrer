@@ -21,6 +21,7 @@
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>arbitrer.rabbitmq</_Parameter1>
+      <_Parameter1>arbitrer.rabbitmq.autofac</_Parameter1>
       <_Parameter1>arbitrer.kafka</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
