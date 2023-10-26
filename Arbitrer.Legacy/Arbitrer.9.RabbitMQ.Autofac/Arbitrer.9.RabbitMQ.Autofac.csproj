@@ -15,29 +15,32 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <Deterministic>true</Deterministic>
-    <RootNamespace>arbitrer.rabbitmq</RootNamespace>
+    <RootNamespace>Arbitrer.RabbitMQ.Autofac</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Arbitrer.RabbitMQ.Autofac</AssemblyName>
+    
+    <RepositoryUrl>https://github.com/teamdev-it/arbitrer</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
-    <PackageReference Include="Autofac" Version="7.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.5.*" />
+    <PackageReference Include="Autofac" Version="7.*" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.*" />
+    <PackageReference Include="MediatR" Version="[9.0.0,13.0.0)" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Arbitrer.standard20\Arbitrer.standard20.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\Arbitrer.RabbitMQ\consts.cs">
+    <Compile Include="..\..\Arbitrer.RabbitMQ\consts.cs">
       <Link>consts.cs</Link>
-    </Compile>
-    <Compile Include="..\Arbitrer.RabbitMQ\MessageDispatcherOptions.cs">
-      <Link>MessageDispatcherOptions.cs</Link>
     </Compile>
     <Compile Update="Extensions\Extensions.cs">
       <Link>Extensions\Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\Arbitrer.RabbitMQ\MessageDispatcherOptions.cs">
+      <Link>MessageDispatcherOptions.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Arbitrer.9\Arbitrer.9.csproj" />
   </ItemGroup>
 </Project>

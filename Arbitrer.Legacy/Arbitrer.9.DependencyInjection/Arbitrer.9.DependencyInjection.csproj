@@ -18,10 +18,14 @@
         <Deterministic>true</Deterministic>
         <RootNamespace>Arbitrer</RootNamespace>
         <TargetFrameworks>netstandard2.0</TargetFrameworks>
+        <AssemblyName>Arbitrer.DependencyInjection</AssemblyName>
+        
+        <RepositoryUrl>https://github.com/teamdev-it/arbitrer</RepositoryUrl>
     </PropertyGroup>
 
+
     <ItemGroup>
-      <ProjectReference Include="..\Arbitrer.standard20\Arbitrer.standard20.csproj" />
+      <ProjectReference Include="..\Arbitrer.9\Arbitrer.9.csproj" />
     </ItemGroup>
 
 </Project>
