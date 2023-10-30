@@ -35,13 +35,21 @@ namespace Arbitrer
     protected override async Task PublishCore(IEnumerable<Func<INotification, CancellationToken, Task>> allHandlers, INotification notification,
       CancellationToken cancellationToken)
     {
-      if (allowRemoteRequest && arbitrer.HasRemoteHandler(notification.GetType()))
+      try
       {
-        logger.LogDebug("Propagating: {Json}", JsonConvert.SerializeObject(notification));
-        await arbitrer.SendRemoteNotification(notification);
+        if (allowRemoteRequest && arbitrer.HasRemoteHandler(notification.GetType()))
+        {
+          logger.LogDebug("Propagating: {Json}", JsonConvert.SerializeObject(notification));
+          await arbitrer.SendRemoteNotification(notification);
+        }
+        else
+          await base.PublishCore(allHandlers, notification, cancellationToken);
       }
-      else
-        await base.PublishCore(allHandlers, notification, cancellationToken);
+      catch (Exception ex)
+      {
+        logger.LogError(ex, ex.Message);
+        throw;
+      }
     }
   }
 }

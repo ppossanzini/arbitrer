@@ -7,7 +7,7 @@ using System.Reflection;
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
-      services.AddMediatR(Assembly.GetExecutingAssembly());
+      services.AddMediatR(cfg => { cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()); });
       services.AddArbitrer(opt =>
       {
         opt.Behaviour = ArbitrerBehaviourEnum.Explicit;
@@ -18,6 +18,7 @@ IHost host = Host.CreateDefaultBuilder(args)
         opt.SetAsLocalRequest<MediatRRequest5>();
         opt.SetAsLocalRequest<MediatRRequestWithException>();
         opt.SetAsLocalRequest<MediatRRequestWithHandlerException>();
+          
         opt.ListenForNotification<MediatorNotification1>();
       });
       // services.AddArbitrerRabbitMQMessageDispatcher(opt => context.Configuration.GetSection("rabbitmq").Bind(opt));

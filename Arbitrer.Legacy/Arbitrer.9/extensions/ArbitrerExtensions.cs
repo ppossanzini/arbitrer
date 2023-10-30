@@ -11,17 +11,6 @@ namespace Arbitrer
 {
   public static class ArbitrerExtensions
   {
-    public static IServiceCollection AddArbitrer(this IServiceCollection services, Action<ArbitrerOptions> configure = null)
-    {
-      if (configure != null)
-        services.Configure<ArbitrerOptions>(configure);
-      services.AddScoped(typeof(IPipelineBehavior<,>), typeof(Pipelines.ArbitrerPipeline<,>));
-      services.AddSingleton<IArbitrer, Arbitrer>();
-
-      services.AddTransient<IMediator, ArbitredMediatr>();
-      return services;
-    }
-
     public static ArbitrerOptions InferLocalRequests(this ArbitrerOptions options, IEnumerable<Assembly> assemblies)
     {
       var localRequests = assemblies.SelectMany(a => a
@@ -30,7 +19,7 @@ namespace Arbitrer
           .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.IRequestHandler"))
           .Select(i => i.GetGenericArguments()[0]).ToArray()
         ));
-      options.SetAsLocalRequests(localRequests.ToArray);
+      options.SetAsLocalRequests(() => localRequests);
       return options;
     }
 
@@ -71,6 +60,7 @@ namespace Arbitrer
       options.LocalRequests.Add(typeof(T));
       return options;
     }
+
 
     public static ArbitrerOptions SetAsRemoteRequest<T>(this ArbitrerOptions options) where T : IBaseRequest
     {
@@ -122,13 +112,13 @@ namespace Arbitrer
 
     public static string TypeQueueName(this Type t, StringBuilder sb = null)
     {
-      if (t.CustomAttributes.Any())
+      if (t.CustomAttributes.Count() > 0)
       {
         var attr = t.GetCustomAttribute<ArbitrerQueueNameAttribute>();
         if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".", "_");
       }
 
-      sb = sb ?? new StringBuilder();
+      if (sb is null) sb = new StringBuilder();
       sb.Append(t.Namespace);
       sb.Append(".");
       sb.Append(t.Name);
