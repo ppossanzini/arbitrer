@@ -84,7 +84,7 @@ namespace Arbitrer.RabbitMQ
           }
           catch (Exception e)
           {
-            logger.LogError(e,e.Message);
+            logger.LogError(e, e.Message);
             throw;
           }
         };
@@ -97,41 +97,42 @@ namespace Arbitrer.RabbitMQ
 
     private async Task ConsumeChannelNotification<T>(object sender, BasicDeliverEventArgs ea)
     {
-      var msg = ea.Body.ToArray();
-
-      if (options.DeDuplicationEnabled)
-      {
-        var hash = msg.GetHash(_hasher);
-        lock (_deduplicationcache)
-          if (_deduplicationcache.Contains(hash))
-          {
-            logger.LogDebug($"duplicated message received : {ea.Exchange}/{ea.RoutingKey}");
-            return;
-          }
-
-        lock (_deduplicationcache)
-          _deduplicationcache.Add(hash);
-
-        // Do not await this task
-#pragma warning disable CS4014
-        Task.Run(async () =>
-        {
-          await Task.Delay(options.DeDuplicationTTL);
-          lock (_deduplicationcache)
-            _deduplicationcache.Remove(hash);
-        });
-#pragma warning restore CS4014
-      }
-
-      logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
-      var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
-
-      var replyProps = _channel.CreateBasicProperties();
-      replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
-
-      var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
       try
       {
+        var msg = ea.Body.ToArray();
+
+        if (options.DeDuplicationEnabled)
+        {
+          var hash = msg.GetHash(_hasher);
+          lock (_deduplicationcache)
+            if (_deduplicationcache.Contains(hash))
+            {
+              logger.LogDebug($"duplicated message received : {ea.Exchange}/{ea.RoutingKey}");
+              return;
+            }
+
+          lock (_deduplicationcache)
+            _deduplicationcache.Add(hash);
+
+          // Do not await this task
+#pragma warning disable CS4014
+          Task.Run(async () =>
+          {
+            await Task.Delay(options.DeDuplicationTTL);
+            lock (_deduplicationcache)
+              _deduplicationcache.Remove(hash);
+          });
+#pragma warning restore CS4014
+        }
+
+        logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
+        var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
+
+        var replyProps = _channel.CreateBasicProperties();
+        replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
+
+        var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
+
         var arbitrer = mediator as ArbitredMediatr;
         arbitrer?.StopPropagating();
         await mediator.Publish(message);
@@ -148,15 +149,17 @@ namespace Arbitrer.RabbitMQ
 
     private async Task ConsumeChannelMessage<T>(object sender, BasicDeliverEventArgs ea)
     {
-      var msg = ea.Body.ToArray();
-      logger.LogDebug("Elaborating message : {0}", Encoding.UTF8.GetString(msg));
-      var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
-
-      var replyProps = _channel.CreateBasicProperties();
-      replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
       string responseMsg = null;
+      var replyProps = _channel.CreateBasicProperties();
       try
       {
+        replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
+        
+        var msg = ea.Body.ToArray();
+        logger.LogDebug("Elaborating message : {0}", Encoding.UTF8.GetString(msg));
+        var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), options.SerializerSettings);
+          
+
         var mediator = provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
         var response = await mediator.Send(message);
         responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Content = response, Status = Messages.StatusEnum.Ok },
