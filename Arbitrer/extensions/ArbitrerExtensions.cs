@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -9,6 +10,8 @@ using Microsoft.Extensions.Hosting;
 
 namespace Arbitrer
 {
+  [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+  [SuppressMessage("ReSharper", "PossibleMultipleEnumeration")]
   public static class ArbitrerExtensions
   {
     public static IServiceCollection AddArbitrer(this IServiceCollection services, Action<ArbitrerOptions> configure = null)
@@ -19,6 +22,18 @@ namespace Arbitrer
       services.AddSingleton<IArbitrer, Arbitrer>();
 
       services.AddTransient<IMediator, ArbitredMediatr>();
+      return services;
+    }
+
+    public static IServiceCollection AddArbitrer(this ServiceCollection services, IEnumerable<Assembly> assemblies)
+    {
+      services.AddArbitrer(cfg =>
+      {
+        cfg.Behaviour = ArbitrerBehaviourEnum.ImplicitRemote;
+        cfg.InferLocalRequests(assemblies);
+        cfg.InferLocalNotifications(assemblies);
+        cfg.InferPublishedNotifications(assemblies);
+      });
       return services;
     }
 
