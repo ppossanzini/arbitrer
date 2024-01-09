@@ -15,6 +15,9 @@ using System.Threading;
 
 namespace Arbitrer.Kafka
 {
+  /// <summary>
+  /// Represents a MessageDispatcher class that is responsible for dispatching and handling messages using Kafka.
+  /// </summary>
   public class MessageDispatcher : IExternalMessageDispatcher, IDisposable
   {
     private Thread _consumerThread;
@@ -35,6 +38,19 @@ namespace Arbitrer.Kafka
     }
 
 
+    /// Initializes the Kafka connection.
+    /// This method sets up a Kafka connection by creating a producer and consumer, subscribing to a reply topic, and starting a consumer thread to listen for responses.
+    /// @remarks
+    /// It is assumed that the `_options` and `_logger` objects are properly configured.
+    /// @example
+    /// InitConnection();
+    /// @see KafkaOptions
+    /// @see ILogger
+    /// @see ProducerBuilder
+    /// @see ConsumerBuilder
+    /// @see IAdminClient
+    /// @see JsonConvert
+    /// /
     public void InitConnection()
     {
       _logger.LogInformation($"Creating Kafka Connection to '{_options.BootstrapServers}'...");
@@ -63,7 +79,7 @@ namespace Arbitrer.Kafka
               var reply = JsonConvert.DeserializeObject<KafkaReply>(consumeResult.Message.Value, this._options.SerializerSettings);
 
               if (reply != null)
-                if (_callbackMapper.TryRemove(reply.CorrelationId, out TaskCompletionSource<string> tcs))
+                if (_callbackMapper.TryRemove(reply.CorrelationId, out var tcs))
                   tcs?.TrySetResult(consumeResult.Message.Value);
             }
           }
@@ -73,6 +89,14 @@ namespace Arbitrer.Kafka
       _consumerThread.Start();
     }
 
+    /// <summary>
+    /// Dispatches a request message to a Kafka topic and waits for a response.
+    /// </summary>
+    /// <typeparam name="TRequest">The type of the request message.</typeparam>
+    /// <typeparam name="TResponse">The type of the response message.</typeparam>
+    /// <param name="request">The request message to be dispatched.</param>
+    /// <param name="cancellationToken">The cancellation token to cancel the dispatch operation.</param>
+    /// <returns>A task that represents the asynchronous dispatch operation. The task result contains the response message.</returns>
     public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
     {
       var correlationId = Guid.NewGuid().ToString();
@@ -98,6 +122,13 @@ namespace Arbitrer.Kafka
       return response.Reply;
     }
 
+    /// <summary>
+    /// Notifies the specified request.
+    /// </summary>
+    /// <typeparam name="TRequest">The type of the request.</typeparam>
+    /// <param name="request">The request object.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
     public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
     {
       var message = JsonConvert.SerializeObject(request, _options.SerializerSettings);
@@ -134,6 +165,9 @@ namespace Arbitrer.Kafka
       }
     }
 
+    /// <summary>
+    /// Disposes the consumer by deleting the topic asynchronously, unsubscribing, closing, and disposing the consumer.
+    /// </summary>
     private void DisposeConsumer()
     {
        _provider.DeleteTopicAsync(this._options, this._replyTopicName);

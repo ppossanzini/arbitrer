@@ -16,6 +16,9 @@ using Newtonsoft.Json;
 
 namespace Arbitrer.Kafka
 {
+  /// <summary>
+  /// Represents a class that manages requests and notifications using Kafka.
+  /// </summary>
   public class RequestsManager : IHostedService
   {
     private readonly ILogger<RequestsManager> _logger;
@@ -30,7 +33,7 @@ namespace Arbitrer.Kafka
     private Thread _notificationConsumerThread;
     private Thread _requestConsumerThread;
 
-    private Dictionary<string, MethodInfo> _methods = new Dictionary<string, MethodInfo>();
+    private readonly Dictionary<string, MethodInfo> _methods = new Dictionary<string, MethodInfo>();
 
     public RequestsManager(ILogger<RequestsManager> logger, IOptions<MessageDispatcherOptions> options, IArbitrer arbitrer, IServiceProvider provider)
     {
@@ -40,6 +43,11 @@ namespace Arbitrer.Kafka
       this._provider = provider;
     }
 
+    /// <summary>
+    /// Starts the asynchronous process of connecting to Kafka and subscribing to messages.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public Task StartAsync(CancellationToken cancellationToken)
     {
       _producer = new ProducerBuilder<Null, string>(this._options.GetProducerConfig()).Build();
@@ -62,40 +70,41 @@ namespace Arbitrer.Kafka
 
       foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
+        if (t is null) continue;
         _provider.CreateTopicAsync(_options, t.TypeQueueName());
         var isNotification = typeof(INotification).IsAssignableFrom(t);
 
         if (isNotification)
         {
           notificationsSubscriptions.Add(t.TypeQueueName());
-          var consumermethod = typeof(RequestsManager)
-            .GetMethod("ConsumeChannelNotification", BindingFlags.Instance | BindingFlags.NonPublic)
+          var consumerMethod = typeof(RequestsManager)
+            .GetMethod("ConsumeChannelNotification", BindingFlags.Instance | BindingFlags.NonPublic)?
             .MakeGenericMethod(t);
-          _methods.Add(t.TypeQueueName(), consumermethod);
+          _methods.Add(t.TypeQueueName(), consumerMethod);
         }
         else
         {
           requestSubscriptions.Add(t.TypeQueueName());
-          var consumermethod = typeof(RequestsManager)
-            .GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)
+          var consumerMethod = typeof(RequestsManager)
+            .GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)?
             .MakeGenericMethod(t);
-          _methods.Add(t.TypeQueueName(), consumermethod);
+          _methods.Add(t.TypeQueueName(), consumerMethod);
         }
       }
-      
+
       _requestConsumer.Subscribe(requestSubscriptions);
       _notificationConsumer.Subscribe(notificationsSubscriptions);
-      
+
       _requestConsumerThread = new Thread(() =>
       {
         while (true)
         {
           var notification = _requestConsumer.Consume();
-          _methods.TryGetValue(notification.Topic, out MethodInfo method);
-          if(method != null)
-          method.Invoke(this, new object[] {notification.Message.Value});
+          _methods.TryGetValue(notification.Topic, out var method);
+          if (method != null)
+            method.Invoke(this, new object[] { notification.Message.Value });
         }
-      }) {IsBackground = true};
+      }) { IsBackground = true };
       _requestConsumerThread.Start();
 
       _notificationConsumerThread = new Thread(() =>
@@ -103,18 +112,21 @@ namespace Arbitrer.Kafka
         while (true)
         {
           var notification = _notificationConsumer.Consume();
-          _methods.TryGetValue(notification.Topic, out MethodInfo method);
-          if(method != null)
-          method.Invoke(this, new object[] {notification.Message.Value});
+          _methods.TryGetValue(notification.Topic, out var method);
+          if (method != null)
+            method.Invoke(this, new object[] { notification.Message.Value });
         }
-      }) {IsBackground = true};
-      
+      }) { IsBackground = true };
+
       _notificationConsumerThread.Start();
 
 
       return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Elaborates and processes a notification received from a channel. </summary> <typeparam name="T">The type of the message.</typeparam> <param name="msg">The notification message to be processed.</param> <returns>A task representing the asynchronous operation.</returns>
+    /// /
     private async Task ConsumeChannelNotification<T>(string msg)
     {
       _logger.LogDebug("Elaborating notification : {Msg}", msg);
@@ -137,11 +149,14 @@ namespace Arbitrer.Kafka
       {
         _logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
       }
-      finally
-      {
-      }
     }
 
+    /// <summary>
+    /// Consume a channel message and process it.
+    /// </summary>
+    /// <typeparam name="T">Type of the message content.</typeparam>
+    /// <param name="msg">The message to consume.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task ConsumeChannelMessage<T>(string msg)
     {
       _logger.LogDebug("Elaborating message : {Msg}", msg);
@@ -161,7 +176,7 @@ namespace Arbitrer.Kafka
         responseMsg = JsonConvert.SerializeObject(
           new KafkaReply
           {
-            Reply = new Messages.ResponseMessage {Content = response, Status = Messages.StatusEnum.Ok},
+            Reply = new Messages.ResponseMessage { Content = response, Status = Messages.StatusEnum.Ok },
             CorrelationId = message.CorrelationId
           }, _options.SerializerSettings);
         _logger.LogDebug("Elaborating sending response : {Msg}", responseMsg);
@@ -171,7 +186,7 @@ namespace Arbitrer.Kafka
         responseMsg = JsonConvert.SerializeObject(
           new KafkaReply()
           {
-            Reply = new Messages.ResponseMessage {Exception = ex, Status = Messages.StatusEnum.Exception},
+            Reply = new Messages.ResponseMessage { Exception = ex, Status = Messages.StatusEnum.Exception },
             CorrelationId = message.CorrelationId
           }
           , _options.SerializerSettings);
@@ -179,7 +194,7 @@ namespace Arbitrer.Kafka
       }
       finally
       {
-        await _producer.ProduceAsync(message.ReplyTo, new Message<Null, string>() {Value = responseMsg});
+        await _producer.ProduceAsync(message.ReplyTo, new Message<Null, string>() { Value = responseMsg });
       }
     }
 

@@ -16,7 +16,7 @@ namespace Arbitrer
       var localRequests = assemblies.SelectMany(a => a
         .GetTypes()
         .SelectMany(t => t.GetInterfaces()
-          .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.IRequestHandler"))
+          .Where(i => i.FullName != null && i.FullName.StartsWith("MediatR.IRequestHandler"))
           .Select(i => i.GetGenericArguments()[0]).ToArray()
         ));
       options.SetAsLocalRequests(() => localRequests);
@@ -28,7 +28,7 @@ namespace Arbitrer
       var localNotifications = assemblies.SelectMany(a => a
         .GetTypes()
         .SelectMany(t => t.GetInterfaces()
-          .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.INotification`"))
+          .Where(i => i.FullName != null && i.FullName.StartsWith("MediatR.INotification`"))
           .Select(i => i.GetGenericArguments()[0]).ToArray()
         ));
 
@@ -41,7 +41,7 @@ namespace Arbitrer
       var localNotifications = assemblies.SelectMany(a => a
         .GetTypes()
         .SelectMany(t => t.GetInterfaces()
-          .Where(i => i != null && i.FullName != null && i.FullName.StartsWith("MediatR.INotificationHandler"))
+          .Where(i => i.FullName != null && i.FullName.StartsWith("MediatR.INotificationHandler"))
           .Select(i => i.GetGenericArguments()[0]).ToArray()
         ));
 
@@ -112,7 +112,7 @@ namespace Arbitrer
 
     public static string TypeQueueName(this Type t, StringBuilder sb = null)
     {
-      if (t.CustomAttributes.Count() > 0)
+      if (t.CustomAttributes.Any())
       {
         var attr = t.GetCustomAttribute<ArbitrerQueueNameAttribute>();
         if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".", "_");

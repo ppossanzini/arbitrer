@@ -58,7 +58,7 @@ namespace Arbitrer.RabbitMQ
       }
 
       _sendChannel = _connection.CreateModel();
-      _sendChannel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
+      _sendChannel.ExchangeDeclare(Constants.ArbitrerExchangeName, ExchangeType.Topic);
       // _channel.ConfirmSelect();
 
       var queueName = $"{options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
@@ -66,7 +66,7 @@ namespace Arbitrer.RabbitMQ
       _sendConsumer = new AsyncEventingBasicConsumer(_sendChannel);
       _sendConsumer.Received += (s, ea) =>
       {
-        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs))
+        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out var tcs))
           return Task.CompletedTask;
         var body = ea.Body.ToArray();
         var response = Encoding.UTF8.GetString(body);
@@ -76,7 +76,7 @@ namespace Arbitrer.RabbitMQ
 
       _sendChannel.BasicReturn += (s, ea) =>
       {
-        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs)) return;
+        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out var tcs)) return;
         tcs.TrySetException(new Exception($"Unable to deliver required action: {ea.RoutingKey}"));
       };
 
@@ -95,7 +95,7 @@ namespace Arbitrer.RabbitMQ
       _callbackMapper.TryAdd(correlationId, tcs);
 
       _sendChannel.BasicPublish(
-        exchange: Consts.ArbitrerExchangeName,
+        exchange: Constants.ArbitrerExchangeName,
         routingKey: typeof(TRequest).TypeQueueName(),
         mandatory: true,
         body: Encoding.UTF8.GetBytes(message),
@@ -111,10 +111,10 @@ namespace Arbitrer.RabbitMQ
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-      logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
+      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
 
       _sendChannel.BasicPublish(
-        exchange: Consts.ArbitrerExchangeName,
+        exchange: Constants.ArbitrerExchangeName,
         routingKey: request.GetType().TypeQueueName(),
         mandatory: false,
         body: Encoding.UTF8.GetBytes(message)
