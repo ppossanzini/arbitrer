@@ -57,9 +57,9 @@ namespace Arbitrer.RabbitMQ
 
         _connection = factory.CreateConnection();
         _channel = _connection.CreateModel();
-        _channel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
+        _channel.ExchangeDeclare(Constants.ArbitrerExchangeName, ExchangeType.Topic);
 
-        _logger.LogInformation($"ARBITRER: ready !");
+        _logger.LogInformation("ARBITRER: ready !");
       }
 
 
@@ -69,7 +69,7 @@ namespace Arbitrer.RabbitMQ
         var queuename = $"{t.TypeQueueName()}${(isNotification ? Guid.NewGuid().ToString() : "")}";
 
         _channel.QueueDeclare(queue: queuename, durable: _options.Durable, exclusive: isNotification, autoDelete: _options.AutoDelete, arguments: null);
-        _channel.QueueBind(queuename, Consts.ArbitrerExchangeName, t.TypeQueueName());
+        _channel.QueueBind(queuename, Constants.ArbitrerExchangeName, t.TypeQueueName());
 
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -132,8 +132,7 @@ namespace Arbitrer.RabbitMQ
       replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
       try
       {
-        IMediator mediator = null;
-        if (!_provider.BeginLifetimeScope(MatchingScopeLifetimeTags.RequestLifetimeScopeTag).TryResolve<IMediator>(out mediator))
+        if (!_provider.BeginLifetimeScope(MatchingScopeLifetimeTags.RequestLifetimeScopeTag).TryResolve<IMediator>(out var mediator))
           mediator = _provider.BeginLifetimeScope().Resolve<IMediator>();
 
         var arbitrer = mediator as ArbitredMediatr;
@@ -144,9 +143,6 @@ namespace Arbitrer.RabbitMQ
       catch (Exception ex)
       {
         _logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
-      }
-      finally
-      {
       }
     }
 
@@ -161,8 +157,7 @@ namespace Arbitrer.RabbitMQ
       string responseMsg = null;
       try
       {
-        IMediator mediator = null;
-        if (!_provider.BeginLifetimeScope(MatchingScopeLifetimeTags.RequestLifetimeScopeTag).TryResolve<IMediator>(out mediator))
+        if (!_provider.BeginLifetimeScope(MatchingScopeLifetimeTags.RequestLifetimeScopeTag).TryResolve<IMediator>(out var mediator))
           mediator = _provider.BeginLifetimeScope().Resolve<IMediator>();
 
         var response = await mediator.Send(message);

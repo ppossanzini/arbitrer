@@ -21,7 +21,7 @@
     <RepositoryUrl>https://github.com/teamdev-it/arbitrer</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="RabbitMQ.Client" Version="6.5.*" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.*" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.*" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.*" />

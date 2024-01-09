@@ -4,6 +4,10 @@ using System;
 
 namespace Arbitrer.Messages
 {
+  /// <summary>
+  /// The ResponseMessage class represents a response message that is returned from various operations.
+  /// It contains information about the status, content, and any associated exception. </summary> <typeparam name="T">The type of the content</typeparam>
+  /// /
   public class ResponseMessage<T>
   {
     public StatusEnum Status { get; set; }
@@ -12,6 +16,9 @@ namespace Arbitrer.Messages
   }
 
 
+  /// <summary>
+  /// Represents a response message from a service.
+  /// </summary>
   public class ResponseMessage
   {
     public StatusEnum Status { get; set; }
@@ -19,6 +26,9 @@ namespace Arbitrer.Messages
     public Exception Exception { get; set; }
   }
 
+  /// <summary>
+  /// Represents the status values for a certain operation.
+  /// </summary>
   public enum StatusEnum
   {
     Ok,

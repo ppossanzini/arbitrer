@@ -63,7 +63,7 @@ namespace Arbitrer.Kafka
               var reply = JsonConvert.DeserializeObject<KafkaReply>(consumeResult.Message.Value, this._options.SerializerSettings);
 
               if (reply != null)
-                if (_callbackMapper.TryRemove(reply.CorrelationId, out TaskCompletionSource<string> tcs))
+                if (_callbackMapper.TryRemove(reply.CorrelationId, out var tcs))
                   tcs?.TrySetResult(consumeResult.Message.Value);
             }
           }

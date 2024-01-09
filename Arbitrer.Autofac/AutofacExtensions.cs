@@ -8,6 +8,9 @@ namespace Arbitrer
 {
   public static class AutofacExtensions
   {
+    /// <summary>
+    /// Adds the Arbitrer services to the ContainerBuilder. </summary> <param name="builder">The ContainerBuilder to add the services to.</param> <param name="configure">The action used to configure the ArbitrerOptions.</param> <param name="loggerFactory">The ILoggerFactory used to create loggers.</param> <returns>The modified ContainerBuilder.</returns>
+    /// /
     public static ContainerBuilder AddArbitrer(this ContainerBuilder builder, Action<ArbitrerOptions> configure, ILoggerFactory loggerFactory)
     {
       if (configure != null)

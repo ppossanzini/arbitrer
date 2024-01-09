@@ -18,18 +18,57 @@ using Newtonsoft.Json.Serialization;
 
 namespace Arbitrer.RabbitMQ
 {
+  /// <summary>
+  /// Class for dispatching messages to RabbitMQ and handling responses.
+  /// </summary>
   public class MessageDispatcher : IExternalMessageDispatcher, IDisposable
   {
+    /// <summary>
+    /// Represents the options for the message dispatcher.
+    /// </summary>
     private readonly MessageDispatcherOptions options;
+
+    /// <summary>
+    /// The logger for the MessageDispatcher class.
+    /// </summary>
+    /// <typeparam name="MessageDispatcher">The type of the class that the logger is associated with.</typeparam>
     private readonly ILogger<MessageDispatcher> logger;
+
+    /// <summary>
+    /// Stores an instance of an object that implements the IConnection interface.
+    /// </summary>
     private IConnection _connection = null;
+
+    /// <summary>
+    /// The channel used for sending messages.
+    /// </summary>
     private IModel _sendChannel = null;
+
+    /// <summary>
+    /// Represents the name of the reply queue.
+    /// </summary>
     private string _replyQueueName = null;
+
+    /// <summary>
+    /// Represents an asynchronous event-based consumer for sending messages.
+    /// </summary>
     private AsyncEventingBasicConsumer _sendConsumer = null;
+
+    /// <summary>
+    /// The unique identifier of the consumer.
+    /// </summary>
     private string _consumerId = null;
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
+
+    /// <summary>
+    /// Dictionary that maps callback strings to TaskCompletionSource objects.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper =
+      new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
 
+    /// <summary>
+    /// Constructor for the MessageDispatcher class. </summary> <param name="options">The options for the MessageDispatcher.</param> <param name="logger">The logger for the MessageDispatcher.</param>
+    /// /
     public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger)
     {
       this.options = options.Value;
@@ -38,6 +77,8 @@ namespace Arbitrer.RabbitMQ
       this.InitConnection();
     }
 
+    /// Initializes the RabbitMQ connection and sets up the necessary channels and consumers.
+    /// /
     private void InitConnection()
     {
       // Ensuring we have a connetion object
@@ -58,7 +99,7 @@ namespace Arbitrer.RabbitMQ
       }
 
       _sendChannel = _connection.CreateModel();
-      _sendChannel.ExchangeDeclare(Consts.ArbitrerExchangeName, ExchangeType.Topic);
+      _sendChannel.ExchangeDeclare(Constants.ArbitrerExchangeName, ExchangeType.Topic);
       // _channel.ConfirmSelect();
 
       var queueName = $"{options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
@@ -66,17 +107,29 @@ namespace Arbitrer.RabbitMQ
       _sendConsumer = new AsyncEventingBasicConsumer(_sendChannel);
       _sendConsumer.Received += (s, ea) =>
       {
-        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs))
-          return Task.CompletedTask;
-        var body = ea.Body.ToArray();
-        var response = Encoding.UTF8.GetString(body);
-        tcs.TrySetResult(response);
+        TaskCompletionSource<string> tcs = null;
+        try
+        {
+          if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out tcs))
+            return Task.CompletedTask;
+
+
+          var body = ea.Body.ToArray();
+          var response = Encoding.UTF8.GetString(body);
+          tcs.TrySetResult(response);
+        }
+        catch (Exception ex)
+        {
+          logger.LogError($"Error deserializing response: {ex.Message}", ex);
+          tcs?.TrySetException(ex);
+        }
+
         return Task.CompletedTask;
       };
 
       _sendChannel.BasicReturn += (s, ea) =>
       {
-        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out TaskCompletionSource<string> tcs)) return;
+        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out var tcs)) return;
         tcs.TrySetException(new Exception($"Unable to deliver required action: {ea.RoutingKey}"));
       };
 
@@ -84,6 +137,14 @@ namespace Arbitrer.RabbitMQ
     }
 
 
+    /// <summary>
+    /// Dispatches a request and waits for the response.
+    /// </summary>
+    /// <typeparam name="TRequest">The type of the request.</typeparam>
+    /// <typeparam name="TResponse">The type of the response.</typeparam>
+    /// <param name="request">The request object.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The task representing the response message.</returns>
     public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
@@ -91,38 +152,50 @@ namespace Arbitrer.RabbitMQ
       var correlationId = Guid.NewGuid().ToString();
 
       var tcs = new TaskCompletionSource<string>();
-      _callbackMapper.TryAdd(correlationId, tcs);
+      var rr = _callbackMapper.TryAdd(correlationId, tcs);
 
       _sendChannel.BasicPublish(
-        exchange: Consts.ArbitrerExchangeName,
+        exchange: Constants.ArbitrerExchangeName,
         routingKey: typeof(TRequest).TypeQueueName(),
         mandatory: true,
         body: Encoding.UTF8.GetBytes(message),
         basicProperties: GetBasicProperties(correlationId));
-      
+
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
 
       return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result, options.SerializerSettings);
     }
 
+    /// <summary>
+    /// Sends a notification message to the specified exchange and routing key.
+    /// </summary>
+    /// <typeparam name="TRequest">The type of the request message.</typeparam>
+    /// <param name="request">The request message to send.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the notification operation.</param>
+    /// <returns>A task representing the asynchronous notification operation.</returns>
     public Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-      logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
+      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
 
       _sendChannel.BasicPublish(
-        exchange: Consts.ArbitrerExchangeName,
+        exchange: Constants.ArbitrerExchangeName,
         routingKey: request.GetType().TypeQueueName(),
         mandatory: false,
         body: Encoding.UTF8.GetBytes(message)
       );
-      
+
       return Task.CompletedTask;
     }
 
 
+    /// <summary>
+    /// Retrieves the basic properties for a given correlation ID.
+    /// </summary>
+    /// <param name="correlationId">The correlation ID associated with the properties.</param>
+    /// <returns>The basic properties object.</returns>
     private IBasicProperties GetBasicProperties(string correlationId)
     {
       var props = _sendChannel.CreateBasicProperties();
@@ -131,6 +204,9 @@ namespace Arbitrer.RabbitMQ
       return props;
     }
 
+    /// <summary>
+    /// Disposes of the resources used by the object.
+    /// </summary>
     public void Dispose()
     {
       try

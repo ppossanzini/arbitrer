@@ -1,6 +1,6 @@
 namespace Arbitrer
 {
-  public class Consts
+  public static class Constants
   {
     public const string ArbitrerExchangeName = "Arbitrer-RPC-Exchange";
   }
