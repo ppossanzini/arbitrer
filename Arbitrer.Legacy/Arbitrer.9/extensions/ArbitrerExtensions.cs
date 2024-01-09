@@ -29,7 +29,7 @@ namespace Arbitrer
         .GetTypes()
         .SelectMany(t => t.GetInterfaces()
           .Where(i => i.FullName != null && i.FullName.StartsWith("MediatR.INotification") && !i.FullName.StartsWith("MediatR.INotificationHandler"))
-          .Select(i => i.GetGenericArguments()[0]).ToArray()
+          .ToArray()
         ));
 
       options.SetAsRemoteRequests(() => localNotifications);
