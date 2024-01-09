@@ -28,7 +28,7 @@ namespace Arbitrer
       var localNotifications = assemblies.SelectMany(a => a
         .GetTypes()
         .SelectMany(t => t.GetInterfaces()
-          .Where(i => i.FullName != null && i.FullName.StartsWith("MediatR.INotification`"))
+          .Where(i => i.FullName != null && i.FullName.StartsWith("MediatR.INotification") && !i.FullName.StartsWith("MediatR.INotificationHandler"))
           .Select(i => i.GetGenericArguments()[0]).ToArray()
         ));
 
