@@ -16,7 +16,7 @@ namespace Arbitrer
     private readonly IArbitrer _arbitrer;
     private readonly ILogger<ArbitredMediatr> _logger;
     private bool _allowRemoteRequest = true;
-    
+
     public ArbitredMediatr(IServiceProvider serviceProvider, IArbitrer arbitrer, ILogger<ArbitredMediatr> logger) : base(serviceProvider)
     {
       this._arbitrer = arbitrer;
@@ -46,15 +46,23 @@ namespace Arbitrer
     /// <param name="notification">The notification to publish.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    protected override async Task PublishCore(IEnumerable<NotificationHandlerExecutor> handlerExecutors, INotification notification, CancellationToken cancellationToken)
+    protected override async Task PublishCore(IEnumerable<NotificationHandlerExecutor> handlerExecutors, INotification notification,
+      CancellationToken cancellationToken)
     {
-      if (_allowRemoteRequest && _arbitrer.HasRemoteHandler(notification.GetType()))
+      try
       {
-        _logger.LogDebug("Propagating: {Json}", JsonConvert.SerializeObject(notification));
-        await _arbitrer.SendRemoteNotification(notification);
+        if (_allowRemoteRequest)
+        {
+          _logger.LogDebug("Propagating: {Json}", JsonConvert.SerializeObject(notification));
+          await _arbitrer.SendRemoteNotification(notification);
+        }
+        else
+          await base.PublishCore(handlerExecutors, notification, cancellationToken);
+      }      catch (Exception ex)
+      {
+        _logger.LogError(ex, ex.Message);
+        throw;
       }
-      else
-        await base.PublishCore(handlerExecutors, notification, cancellationToken);
     }
   }
 }
