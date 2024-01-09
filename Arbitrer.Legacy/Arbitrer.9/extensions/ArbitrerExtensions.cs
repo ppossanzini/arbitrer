@@ -23,6 +23,7 @@ namespace Arbitrer
       return options;
     }
 
+    [Obsolete("This registration is no longer needed", false)]
     public static ArbitrerOptions InferPublishedNotifications(this ArbitrerOptions options, IEnumerable<Assembly> assemblies)
     {
       var localNotifications = assemblies.SelectMany(a => a
@@ -68,6 +69,7 @@ namespace Arbitrer
       return options;
     }
 
+    [Obsolete("This registration is no longer needed", false)]
     public static ArbitrerOptions PropagateNotification<T>(this ArbitrerOptions options) where T : INotification
     {
       options.RemoteRequests.Add(typeof(T));

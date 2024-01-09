@@ -73,7 +73,8 @@ namespace Arbitrer
     /// <summary>
     /// Infers the published notifications and sets them as remote requests in the given ArbitrerOptions instance. </summary> <param name="options">The ArbitrerOptions instance to set the remote requests.</param> <param name="assemblies">The enumerable collection of assemblies to scan for types.</param> <returns>
     /// The ArbitrerOptions instance with the remote requests set as the inferred published notifications. </returns>
-    /// /
+    ///
+    [Obsolete("This registration is no longer needed", false)]
     public static ArbitrerOptions InferPublishedNotifications(this ArbitrerOptions options, IEnumerable<Assembly> assemblies)
     {
       var localNotifications = assemblies.SelectMany(a => a
@@ -144,6 +145,7 @@ namespace Arbitrer
     /// <summary>
     /// Adds the specified notification type to the list of remote requests in the <see cref="ArbitrerOptions"/>. </summary> <typeparam name="T">The notification type that is being propagated.</typeparam> <param name="options">The <see cref="ArbitrerOptions"/> instance on which to propagate the notification.</param> <returns>The updated <see cref="ArbitrerOptions"/> instance.</returns>
     /// /
+    [Obsolete("This registration is no longer needed", false)]
     public static ArbitrerOptions PropagateNotification<T>(this ArbitrerOptions options) where T : INotification
     {
       options.RemoteRequests.Add(typeof(T));
