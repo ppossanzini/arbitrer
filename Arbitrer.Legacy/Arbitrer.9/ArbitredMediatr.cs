@@ -37,7 +37,7 @@ namespace Arbitrer
     {
       try
       {
-        if (allowRemoteRequest && arbitrer.HasRemoteHandler(notification.GetType()))
+        if (allowRemoteRequest)
         {
           logger.LogDebug("Propagating: {Json}", JsonConvert.SerializeObject(notification));
           await arbitrer.SendRemoteNotification(notification);
