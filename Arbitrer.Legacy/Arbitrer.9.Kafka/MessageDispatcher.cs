@@ -21,16 +21,19 @@ namespace Arbitrer.Kafka
     private readonly MessageDispatcherOptions _options;
     private readonly ILogger<MessageDispatcher> _logger;
     private readonly IServiceProvider _provider;
+    private readonly ArbitrerOptions _arbitrerOptions;
     private IProducer<Null, string> _producer;
     private IConsumer<Null, string> _consumer;
     private string _replyTopicName;
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
-    public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IServiceProvider provider)
+    public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IServiceProvider provider, 
+      IOptions<ArbitrerOptions> arbitrerOptions)
     {
       this._options = options.Value;
       this._logger = logger;
       _provider = provider;
+      _arbitrerOptions = arbitrerOptions.Value;
       this.InitConnection();
     }
 
@@ -89,7 +92,7 @@ namespace Arbitrer.Kafka
       _callbackMapper.TryAdd(correlationId, tcs);
 
       await _producer.ProduceAsync(
-        topic: typeof(TRequest).TypeQueueName(),
+        topic: typeof(TRequest).TypeQueueName(_arbitrerOptions),
         message: new Message<Null, string> {Value = message}, cancellationToken);
 
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
@@ -103,10 +106,10 @@ namespace Arbitrer.Kafka
     {
       var message = JsonConvert.SerializeObject(request, _options.SerializerSettings);
 
-      _logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
+      _logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName(_arbitrerOptions)}");
 
       await _producer.ProduceAsync(
-        topic: typeof(TRequest).TypeQueueName(),
+        topic: typeof(TRequest).TypeQueueName(_arbitrerOptions),
         message: new Message<Null, string> {Value = message}, cancellationToken);
     }
 

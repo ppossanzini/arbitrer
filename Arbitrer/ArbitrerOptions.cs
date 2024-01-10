@@ -5,9 +5,10 @@ using MediatR;
 
 namespace Arbitrer
 {
-
   public class ArbitrerOptions
   {
+    public string DefaultQueuePrefix { get; set; } = String.Empty;
+    
     /// <summary>
     /// Gets or sets the behaviour of the arbitrer.
     /// </summary>
@@ -26,6 +27,11 @@ namespace Arbitrer
     /// Gets the set of remote requests supported by the application.
     /// </summary>
     public HashSet<Type> RemoteRequests { get; private set; } = new HashSet<Type>();
+
+    /// <summary>
+    /// Get the prefix of remote queue
+    /// </summary>
+    public Dictionary<Type, string> QueuePrefixes { get; private set; } = new Dictionary<Type, string>();
   }
 
 
@@ -38,6 +44,4 @@ namespace Arbitrer
     ImplicitRemote,
     Explicit
   }
-
-
 }

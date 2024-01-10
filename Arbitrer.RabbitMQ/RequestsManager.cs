@@ -21,6 +21,8 @@ namespace Arbitrer.RabbitMQ
   /// </summary>
   public class RequestsManager : IHostedService
   {
+    private ArbitrerOptions _arbitrerOptions;
+
     /// <summary>
     /// Represents the logger for the RequestsManager class.
     /// </summary>
@@ -69,8 +71,10 @@ namespace Arbitrer.RabbitMQ
     /// <param name="logger">The logger to be used for logging.</param>
     /// <param name="arbitrer">The object responsible for coordinating requests.</param>
     /// <param name="provider">The service provider for resolving dependencies.</param>
-    public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<RequestsManager> logger, IArbitrer arbitrer, IServiceProvider provider)
+    public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<RequestsManager> logger, IArbitrer arbitrer, IServiceProvider provider,
+      IOptions<ArbitrerOptions> arbitrerOptions)
     {
+      this._arbitrerOptions = arbitrerOptions.Value;
       this._options = options.Value;
       this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
       this._arbitrer = arbitrer;
@@ -109,10 +113,10 @@ namespace Arbitrer.RabbitMQ
       {
         if (t is null) continue;
         var isNotification = typeof(INotification).IsAssignableFrom(t);
-        var queueName = $"{t.TypeQueueName()}${(isNotification ? Guid.NewGuid().ToString() : "")}";
+        var queueName = $"{t.TypeQueueName(_arbitrerOptions)}${(isNotification ? Guid.NewGuid().ToString() : "")}";
 
         _channel.QueueDeclare(queue: queueName, durable: _options.Durable, exclusive: isNotification, autoDelete: _options.AutoDelete, arguments: null);
-        _channel.QueueBind(queueName, Constants.ArbitrerExchangeName, t.TypeQueueName());
+        _channel.QueueBind(queueName, Constants.ArbitrerExchangeName, t.TypeQueueName(_arbitrerOptions));
 
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -125,7 +129,7 @@ namespace Arbitrer.RabbitMQ
         {
           try
           {
-            if (consumerMethod != null) 
+            if (consumerMethod != null)
               await (Task)consumerMethod.Invoke(this, new object[] { s, ea });
           }
           catch (Exception e)

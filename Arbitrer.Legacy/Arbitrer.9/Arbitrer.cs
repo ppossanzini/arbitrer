@@ -44,9 +44,9 @@ namespace Arbitrer
 
     public async Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request) where TRequest : IRequest<TResponse>
     {
-      logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).TypeQueueName()}");
+      logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).TypeQueueName(options)}");
       var result = await messageDispatcher.Dispatch<TRequest, TResponse>(request);
-      logger.LogDebug($"Remote request for {typeof(TRequest).TypeQueueName()} completed!");
+      logger.LogDebug($"Remote request for {typeof(TRequest).TypeQueueName(options)} completed!");
 
       if (result.Status == Messages.StatusEnum.Exception)
       {
@@ -58,9 +58,9 @@ namespace Arbitrer
 
     public async Task SendRemoteNotification<TRequest>(TRequest request) where TRequest : INotification
     {
-      logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).TypeQueueName()}");
+      logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).TypeQueueName(options)}");
       await messageDispatcher.Notify(request);
-      logger.LogDebug($"Remote request for {typeof(TRequest).TypeQueueName()} completed!");
+      logger.LogDebug($"Remote request for {typeof(TRequest).TypeQueueName(options)} completed!");
     }
 
     public IEnumerable<Type> GetLocalRequestsTypes() => options.LocalRequests;

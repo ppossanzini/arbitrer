@@ -23,6 +23,7 @@ namespace Arbitrer.RabbitMQ
     private readonly ILogger<RequestsManager> _logger;
     private readonly IArbitrer _arbitrer;
     private readonly ILifetimeScope _provider;
+    private readonly ArbitrerOptions _arbitrerOptions;
 
     private IConnection _connection = null;
     private IModel _channel = null;
@@ -32,12 +33,14 @@ namespace Arbitrer.RabbitMQ
 
     private readonly MessageDispatcherOptions _options;
 
-    public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<RequestsManager> logger, IArbitrer arbitrer, ILifetimeScope provider)
+    public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<RequestsManager> logger, IArbitrer arbitrer, ILifetimeScope provider,
+      IOptions<ArbitrerOptions> arbitrerOptions)
     {
       this._options = options.Value;
       this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
       this._arbitrer = arbitrer;
       this._provider = provider;
+      this._arbitrerOptions = arbitrerOptions.Value;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -66,10 +69,10 @@ namespace Arbitrer.RabbitMQ
       foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
         var isNotification = typeof(INotification).IsAssignableFrom(t);
-        var queuename = $"{t.TypeQueueName()}${(isNotification ? Guid.NewGuid().ToString() : "")}";
+        var queuename = $"{t.TypeQueueName(_arbitrerOptions)}${(isNotification ? Guid.NewGuid().ToString() : "")}";
 
         _channel.QueueDeclare(queue: queuename, durable: _options.Durable, exclusive: isNotification, autoDelete: _options.AutoDelete, arguments: null);
-        _channel.QueueBind(queuename, Constants.ArbitrerExchangeName, t.TypeQueueName());
+        _channel.QueueBind(queuename, Constants.ArbitrerExchangeName, t.TypeQueueName(_arbitrerOptions));
 
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -86,7 +89,7 @@ namespace Arbitrer.RabbitMQ
           }
           catch (Exception e)
           {
-            _logger.LogError(e,e.Message);
+            _logger.LogError(e, e.Message);
             throw;
           }
         };

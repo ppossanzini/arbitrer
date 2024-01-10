@@ -90,9 +90,9 @@ namespace Arbitrer
     /// <returns>The response object.</returns>
     public async Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request)
     {
-      _logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).TypeQueueName()}");
+      _logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).TypeQueueName(_options)}");
       var result = await _messageDispatcher.Dispatch<TRequest, TResponse>(request);
-      _logger.LogDebug($"Remote request for {typeof(TRequest).TypeQueueName()} completed!");
+      _logger.LogDebug($"Remote request for {typeof(TRequest).TypeQueueName(_options)} completed!");
 
       if (result.Status == Messages.StatusEnum.Exception)
       {
@@ -110,9 +110,9 @@ namespace Arbitrer
     /// <returns>A task representing the asynchronous operation.</returns>
     public async Task SendRemoteNotification<TRequest>(TRequest request) where TRequest : INotification
     {
-      _logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).TypeQueueName()}");
+      _logger.LogDebug($"Invoking remote handler for: {typeof(TRequest).TypeQueueName(_options)}");
       await _messageDispatcher.Notify(request);
-      _logger.LogDebug($"Remote request for {typeof(TRequest).TypeQueueName()} completed!");
+      _logger.LogDebug($"Remote request for {typeof(TRequest).TypeQueueName(_options)} completed!");
     }
 
     /// <summary>

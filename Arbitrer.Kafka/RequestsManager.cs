@@ -24,6 +24,7 @@ namespace Arbitrer.Kafka
     private readonly ILogger<RequestsManager> _logger;
     private readonly IArbitrer _arbitrer;
     private readonly IServiceProvider _provider;
+    private readonly ArbitrerOptions _arbitrerOptions;
 
     private readonly MessageDispatcherOptions _options;
     private IProducer<Null, string> _producer;
@@ -35,12 +36,14 @@ namespace Arbitrer.Kafka
 
     private readonly Dictionary<string, MethodInfo> _methods = new Dictionary<string, MethodInfo>();
 
-    public RequestsManager(ILogger<RequestsManager> logger, IOptions<MessageDispatcherOptions> options, IArbitrer arbitrer, IServiceProvider provider)
+    public RequestsManager(ILogger<RequestsManager> logger, IOptions<MessageDispatcherOptions> options, IArbitrer arbitrer, IServiceProvider provider,
+      IOptions<ArbitrerOptions> arbitrerOptions)
     {
       _logger = logger;
       _options = options.Value;
       this._arbitrer = arbitrer;
       this._provider = provider;
+      _arbitrerOptions = arbitrerOptions.Value;
     }
 
     /// <summary>
@@ -71,24 +74,24 @@ namespace Arbitrer.Kafka
       foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
         if (t is null) continue;
-        _provider.CreateTopicAsync(_options, t.TypeQueueName());
+        _provider.CreateTopicAsync(_options, t.TypeQueueName(_arbitrerOptions));
         var isNotification = typeof(INotification).IsAssignableFrom(t);
 
         if (isNotification)
         {
-          notificationsSubscriptions.Add(t.TypeQueueName());
+          notificationsSubscriptions.Add(t.TypeQueueName(_arbitrerOptions));
           var consumerMethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelNotification", BindingFlags.Instance | BindingFlags.NonPublic)?
             .MakeGenericMethod(t);
-          _methods.Add(t.TypeQueueName(), consumerMethod);
+          _methods.Add(t.TypeQueueName(_arbitrerOptions), consumerMethod);
         }
         else
         {
-          requestSubscriptions.Add(t.TypeQueueName());
+          requestSubscriptions.Add(t.TypeQueueName(_arbitrerOptions));
           var consumerMethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)?
             .MakeGenericMethod(t);
-          _methods.Add(t.TypeQueueName(), consumerMethod);
+          _methods.Add(t.TypeQueueName(_arbitrerOptions), consumerMethod);
         }
       }
 
