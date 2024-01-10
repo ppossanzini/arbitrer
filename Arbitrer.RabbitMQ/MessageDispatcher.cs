@@ -34,6 +34,8 @@ namespace Arbitrer.RabbitMQ
     /// <typeparam name="MessageDispatcher">The type of the class that the logger is associated with.</typeparam>
     private readonly ILogger<MessageDispatcher> logger;
 
+    private readonly ArbitrerOptions arbitrerOptions;
+
     /// <summary>
     /// Stores an instance of an object that implements the IConnection interface.
     /// </summary>
@@ -69,10 +71,13 @@ namespace Arbitrer.RabbitMQ
     /// <summary>
     /// Constructor for the MessageDispatcher class. </summary> <param name="options">The options for the MessageDispatcher.</param> <param name="logger">The logger for the MessageDispatcher.</param>
     /// /
-    public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger)
+    public MessageDispatcher(
+      IOptions<MessageDispatcherOptions> options,
+      ILogger<MessageDispatcher> logger, IOptions<ArbitrerOptions> arbitrerOptions)
     {
       this.options = options.Value;
       this.logger = logger;
+      this.arbitrerOptions = arbitrerOptions.Value;
 
       this.InitConnection();
     }
@@ -156,7 +161,7 @@ namespace Arbitrer.RabbitMQ
 
       _sendChannel.BasicPublish(
         exchange: Constants.ArbitrerExchangeName,
-        routingKey: typeof(TRequest).TypeQueueName(),
+        routingKey: typeof(TRequest).TypeQueueName(arbitrerOptions),
         mandatory: true,
         body: Encoding.UTF8.GetBytes(message),
         basicProperties: GetBasicProperties(correlationId));
@@ -178,11 +183,11 @@ namespace Arbitrer.RabbitMQ
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
+      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{request.GetType().TypeQueueName(arbitrerOptions)}");
 
       _sendChannel.BasicPublish(
         exchange: Constants.ArbitrerExchangeName,
-        routingKey: request.GetType().TypeQueueName(),
+        routingKey: request.GetType().TypeQueueName(arbitrerOptions),
         mandatory: false,
         body: Encoding.UTF8.GetBytes(message)
       );

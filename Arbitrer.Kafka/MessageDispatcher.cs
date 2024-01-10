@@ -24,16 +24,21 @@ namespace Arbitrer.Kafka
     private readonly MessageDispatcherOptions _options;
     private readonly ILogger<MessageDispatcher> _logger;
     private readonly IServiceProvider _provider;
+    private readonly ArbitrerOptions _arbitrerOptions;
     private IProducer<Null, string> _producer;
     private IConsumer<Null, string> _consumer;
     private string _replyTopicName;
-    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
-    public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IServiceProvider provider)
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper =
+      new ConcurrentDictionary<string, TaskCompletionSource<string>>();
+
+    public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IServiceProvider provider,
+      IOptions<ArbitrerOptions> arbitrerOptions)
     {
       this._options = options.Value;
       this._logger = logger;
       _provider = provider;
+      _arbitrerOptions = arbitrerOptions.Value;
       this.InitConnection();
     }
 
@@ -54,18 +59,18 @@ namespace Arbitrer.Kafka
     public void InitConnection()
     {
       _logger.LogInformation($"Creating Kafka Connection to '{_options.BootstrapServers}'...");
-      
+
       // Ensuring we have a connection object
-      
+
       _replyTopicName = $"{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
       var config = this._options.GetConsumerConfig();
       config.GroupId = _replyTopicName;
-      
+
       _producer = new ProducerBuilder<Null, string>(this._options.GetProducerConfig()).Build();
       _consumer = new ConsumerBuilder<Null, string>(config).Build();
 
       _provider.CreateTopicAsync(_options, _replyTopicName);
-        
+
       _consumer.Subscribe(_replyTopicName);
       _consumerThread = new Thread(() =>
         {
@@ -74,7 +79,6 @@ namespace Arbitrer.Kafka
             var consumeResult = _consumer.Consume();
             if (consumeResult != null)
             {
-              
               _logger.LogDebug("Response Message: {Msg}", consumeResult.Message.Value);
               var reply = JsonConvert.DeserializeObject<KafkaReply>(consumeResult.Message.Value, this._options.SerializerSettings);
 
@@ -103,7 +107,7 @@ namespace Arbitrer.Kafka
       var message = JsonConvert.SerializeObject(new KafkaMessage<TRequest>
       {
         Message = request,
-        CorrelationId = correlationId, 
+        CorrelationId = correlationId,
         ReplyTo = _replyTopicName
       }, _options.SerializerSettings);
 
@@ -112,8 +116,8 @@ namespace Arbitrer.Kafka
       _callbackMapper.TryAdd(correlationId, tcs);
 
       await _producer.ProduceAsync(
-        topic: typeof(TRequest).TypeQueueName(),
-        message: new Message<Null, string> {Value = message}, cancellationToken);
+        topic: typeof(TRequest).TypeQueueName(_arbitrerOptions),
+        message: new Message<Null, string> { Value = message }, cancellationToken);
 
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
@@ -133,11 +137,11 @@ namespace Arbitrer.Kafka
     {
       var message = JsonConvert.SerializeObject(request, _options.SerializerSettings);
 
-      _logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
+      _logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName(_arbitrerOptions)}");
 
       await _producer.ProduceAsync(
-        topic: typeof(TRequest).TypeQueueName(),
-        message: new Message<Null, string> {Value = message}, cancellationToken);
+        topic: typeof(TRequest).TypeQueueName(_arbitrerOptions),
+        message: new Message<Null, string> { Value = message }, cancellationToken);
     }
 
     public void Dispose()
@@ -170,7 +174,7 @@ namespace Arbitrer.Kafka
     /// </summary>
     private void DisposeConsumer()
     {
-       _provider.DeleteTopicAsync(this._options, this._replyTopicName);
+      _provider.DeleteTopicAsync(this._options, this._replyTopicName);
       _consumer.Unsubscribe();
       _consumer.Close();
       _consumer.Dispose();

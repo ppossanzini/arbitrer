@@ -23,19 +23,19 @@ namespace Arbitrer
       return options;
     }
 
-    [Obsolete("This registration is no longer needed", false)]
-    public static ArbitrerOptions InferPublishedNotifications(this ArbitrerOptions options, IEnumerable<Assembly> assemblies)
-    {
-      var localNotifications = assemblies.SelectMany(a => a
-        .GetTypes()
-        .SelectMany(t => t.GetInterfaces()
-          .Where(i => i.FullName != null && i.FullName.StartsWith("MediatR.INotification") && !i.FullName.StartsWith("MediatR.INotificationHandler"))
-          .ToArray()
-        ));
-
-      options.SetAsRemoteRequests(() => localNotifications);
-      return options;
-    }
+    // [Obsolete("This registration is no longer needed", false)]
+    // public static ArbitrerOptions InferPublishedNotifications(this ArbitrerOptions options, IEnumerable<Assembly> assemblies)
+    // {
+    //   var localNotifications = assemblies.SelectMany(a => a
+    //     .GetTypes()
+    //     .SelectMany(t => t.GetInterfaces()
+    //       .Where(i => i.FullName != null && i.FullName.StartsWith("MediatR.INotification") && !i.FullName.StartsWith("MediatR.INotificationHandler"))
+    //       .ToArray()
+    //     ));
+    //
+    //   options.SetAsRemoteRequests(() => localNotifications);
+    //   return options;
+    // }
 
     public static ArbitrerOptions InferLocalNotifications(this ArbitrerOptions options, IEnumerable<Assembly> assemblies)
     {
@@ -69,12 +69,12 @@ namespace Arbitrer
       return options;
     }
 
-    [Obsolete("This registration is no longer needed", false)]
-    public static ArbitrerOptions PropagateNotification<T>(this ArbitrerOptions options) where T : INotification
-    {
-      options.RemoteRequests.Add(typeof(T));
-      return options;
-    }
+    // [Obsolete("This registration is no longer needed", false)]
+    // public static ArbitrerOptions PropagateNotification<T>(this ArbitrerOptions options) where T : INotification
+    // {
+    //   options.RemoteRequests.Add(typeof(T));
+    //   return options;
+    // }
 
     public static ArbitrerOptions SetAsLocalRequests(this ArbitrerOptions options, Func<IEnumerable<Assembly>> assemblySelect)
     {
@@ -112,7 +112,7 @@ namespace Arbitrer
       return options;
     }
 
-    public static string TypeQueueName(this Type t, StringBuilder sb = null)
+    public static string TypeQueueName(this Type t, ArbitrerOptions options, StringBuilder sb = null)
     {
       if (t.CustomAttributes.Any())
       {
@@ -120,17 +120,20 @@ namespace Arbitrer
         if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".", "_");
       }
 
-      if (sb is null) sb = new StringBuilder();
-      sb.Append(t.Namespace);
-      sb.Append(".");
-      sb.Append(t.Name);
+      var prefix = options.DefaultQueuePrefix;
+      options.QueuePrefixes.TryGetValue(t, out prefix);
+
+      sb = sb ?? new StringBuilder();
+
+      if (!string.IsNullOrWhiteSpace(prefix)) sb.Append($"{prefix}.");
+      sb.Append($"{t.Namespace}.{t.Name}");
 
       if (t.GenericTypeArguments?.Length > 0)
       {
         sb.Append("[");
         foreach (var ta in t.GenericTypeArguments)
         {
-          ta.TypeQueueName(sb);
+          ta.TypeQueueName(options, sb);
           sb.Append(",");
         }
 

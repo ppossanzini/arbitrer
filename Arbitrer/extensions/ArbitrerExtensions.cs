@@ -7,6 +7,7 @@ using System.Text;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Arbitrer
 {
@@ -145,12 +146,12 @@ namespace Arbitrer
     /// <summary>
     /// Adds the specified notification type to the list of remote requests in the <see cref="ArbitrerOptions"/>. </summary> <typeparam name="T">The notification type that is being propagated.</typeparam> <param name="options">The <see cref="ArbitrerOptions"/> instance on which to propagate the notification.</param> <returns>The updated <see cref="ArbitrerOptions"/> instance.</returns>
     /// /
-    [Obsolete("This registration is no longer needed", false)]
-    public static ArbitrerOptions PropagateNotification<T>(this ArbitrerOptions options) where T : INotification
-    {
-      options.RemoteRequests.Add(typeof(T));
-      return options;
-    }
+    // [Obsolete("This registration is no longer needed", false)]
+    // public static ArbitrerOptions PropagateNotification<T>(this ArbitrerOptions options) where T : INotification
+    // {
+    //   options.RemoteRequests.Add(typeof(T));
+    //   return options;
+    // }
 
     /// <summary>
     /// Adds selected types from the specified assemblies as local requests to the <see cref="ArbitrerOptions"/>.
@@ -188,7 +189,7 @@ namespace Arbitrer
     /// <param name="options">The <see cref="ArbitrerOptions"/> to set as remote requests.</param>
     /// <param name="assemblySelect">The function to select the assemblies.</param>
     /// <returns>The updated <see cref="ArbitrerOptions"/> with remote requests set.</returns>
-    public static ArbitrerOptions SetAsRemoteRequests(this ArbitrerOptions options, Func<IEnumerable<Assembly>> assemblySelect)
+    public static ArbitrerOptions SetAsRemoteRequests(this ArbitrerOptions options, Func<IEnumerable<Assembly>> assemblySelect, string queuePrefix = null)
     {
       var types = (from a in assemblySelect()
         from t in a.GetTypes()
@@ -196,6 +197,11 @@ namespace Arbitrer
         select t).AsEnumerable();
       foreach (var t in types)
         options.RemoteRequests.Add(t);
+
+      if (!string.IsNullOrWhiteSpace(queuePrefix))
+        foreach (var t in types)
+          if (!options.QueuePrefixes.ContainsKey(t))
+            options.QueuePrefixes.Add(t, queuePrefix);
       return options;
     }
 
@@ -205,10 +211,15 @@ namespace Arbitrer
     /// <param name="options">The ArbitrerOptions object.</param>
     /// <param name="typesSelect">The function that returns IEnumerable of Type objects.</param>
     /// <returns>The modified ArbitrerOptions object.</returns>
-    public static ArbitrerOptions SetAsRemoteRequests(this ArbitrerOptions options, Func<IEnumerable<Type>> typesSelect)
+    public static ArbitrerOptions SetAsRemoteRequests(this ArbitrerOptions options, Func<IEnumerable<Type>> typesSelect, string queuePrefix = null)
     {
       foreach (var t in typesSelect())
         options.RemoteRequests.Add(t);
+
+      if (!string.IsNullOrWhiteSpace(queuePrefix))
+        foreach (var t in typesSelect())
+          if (!options.QueuePrefixes.ContainsKey(t))
+            options.QueuePrefixes.Add(t, queuePrefix);
       return options;
     }
 
@@ -218,7 +229,7 @@ namespace Arbitrer
     /// <param name="t">The type.</param>
     /// <param name="sb">The <see cref="StringBuilder"/> instance to append the queue name to (optional).</param>
     /// <returns>The queue name for the specified type.</returns>
-    public static string TypeQueueName(this Type t, StringBuilder sb = null)
+    public static string TypeQueueName(this Type t, ArbitrerOptions options, StringBuilder sb = null)
     {
       if (t.CustomAttributes.Any())
       {
@@ -226,17 +237,20 @@ namespace Arbitrer
         if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".", "_");
       }
 
+      var prefix = options.DefaultQueuePrefix;
+      options.QueuePrefixes.TryGetValue(t, out prefix);
+
       sb = sb ?? new StringBuilder();
-      sb.Append(t.Namespace);
-      sb.Append(".");
-      sb.Append(t.Name);
+
+      if (!string.IsNullOrWhiteSpace(prefix)) sb.Append($"{prefix}.");
+      sb.Append($"{t.Namespace}.{t.Name}");
 
       if (t.GenericTypeArguments != null && t.GenericTypeArguments.Length > 0)
       {
         sb.Append("[");
         foreach (var ta in t.GenericTypeArguments)
         {
-          ta.TypeQueueName(sb);
+          ta.TypeQueueName(options,sb);
           sb.Append(",");
         }
 

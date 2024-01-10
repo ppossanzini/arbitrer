@@ -22,6 +22,7 @@ namespace Arbitrer.RabbitMQ
   {
     private readonly MessageDispatcherOptions options;
     private readonly ILogger<MessageDispatcher> logger;
+    private readonly ArbitrerOptions _arbitrerOptions;
     private IConnection _connection = null;
     private IModel _sendChannel = null;
     private string _replyQueueName = null;
@@ -30,10 +31,11 @@ namespace Arbitrer.RabbitMQ
     private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _callbackMapper = new ConcurrentDictionary<string, TaskCompletionSource<string>>();
 
 
-    public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger)
+    public MessageDispatcher(IOptions<MessageDispatcherOptions> options, ILogger<MessageDispatcher> logger, IOptions<ArbitrerOptions> arbitrerOptions)
     {
       this.options = options.Value;
       this.logger = logger;
+      _arbitrerOptions = arbitrerOptions.Value;
 
       this.InitConnection();
     }
@@ -96,7 +98,7 @@ namespace Arbitrer.RabbitMQ
 
       _sendChannel.BasicPublish(
         exchange: Constants.ArbitrerExchangeName,
-        routingKey: typeof(TRequest).TypeQueueName(),
+        routingKey: typeof(TRequest).TypeQueueName(_arbitrerOptions),
         mandatory: true,
         body: Encoding.UTF8.GetBytes(message),
         basicProperties: GetBasicProperties(correlationId));
@@ -111,11 +113,11 @@ namespace Arbitrer.RabbitMQ
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{request.GetType().TypeQueueName()}");
+      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{request.GetType().TypeQueueName(_arbitrerOptions)}");
 
       _sendChannel.BasicPublish(
         exchange: Constants.ArbitrerExchangeName,
-        routingKey: request.GetType().TypeQueueName(),
+        routingKey: request.GetType().TypeQueueName(_arbitrerOptions),
         mandatory: false,
         body: Encoding.UTF8.GetBytes(message)
       );
