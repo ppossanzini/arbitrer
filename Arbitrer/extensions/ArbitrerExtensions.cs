@@ -102,8 +102,8 @@ namespace Arbitrer
     {
       options.LocalRequests.Add(typeof(T));
 
-      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.QueuePrefixes.ContainsKey(typeof(T)))
-        options.QueuePrefixes.Add(typeof(T), queuePrefix);
+      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.QueuePrefixes.ContainsKey(typeof(T).FullName))
+        options.QueuePrefixes.Add(typeof(T).FullName, queuePrefix);
       return options;
     }
 
@@ -114,8 +114,8 @@ namespace Arbitrer
     {
       options.LocalRequests.Add(typeof(T));
 
-      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.QueuePrefixes.ContainsKey(typeof(T)))
-        options.QueuePrefixes.Add(typeof(T), queuePrefix);
+      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.QueuePrefixes.ContainsKey(typeof(T).FullName))
+        options.QueuePrefixes.Add(typeof(T).FullName, queuePrefix);
       return options;
     }
 
@@ -129,8 +129,8 @@ namespace Arbitrer
     {
       options.RemoteRequests.Add(typeof(T));
 
-      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.QueuePrefixes.ContainsKey(typeof(T)))
-        options.QueuePrefixes.Add(typeof(T), queuePrefix);
+      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.QueuePrefixes.ContainsKey(typeof(T).FullName))
+        options.QueuePrefixes.Add(typeof(T).FullName, queuePrefix);
 
       return options;
     }
@@ -153,8 +153,8 @@ namespace Arbitrer
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in types)
-          if (!options.QueuePrefixes.ContainsKey(t))
-            options.QueuePrefixes.Add(t, queuePrefix);
+          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+            options.QueuePrefixes.Add(t.FullName, queuePrefix);
 
       return options;
     }
@@ -172,8 +172,8 @@ namespace Arbitrer
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in typesSelect())
-          if (!options.QueuePrefixes.ContainsKey(t))
-            options.QueuePrefixes.Add(t, queuePrefix);
+          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+            options.QueuePrefixes.Add(t.FullName, queuePrefix);
 
       return options;
     }
@@ -195,8 +195,8 @@ namespace Arbitrer
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in types)
-          if (!options.QueuePrefixes.ContainsKey(t))
-            options.QueuePrefixes.Add(t, queuePrefix);
+          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+            options.QueuePrefixes.Add(t.FullName, queuePrefix);
       return options;
     }
 
@@ -213,8 +213,8 @@ namespace Arbitrer
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in typesSelect())
-          if (!options.QueuePrefixes.ContainsKey(t))
-            options.QueuePrefixes.Add(t, queuePrefix);
+          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+            options.QueuePrefixes.Add(t.FullName, queuePrefix);
       return options;
     }
 
@@ -233,7 +233,7 @@ namespace Arbitrer
       }
 
       // var prefix = options.DefaultQueuePrefix;
-      options.QueuePrefixes.TryGetValue(t, out var prefix);
+      options.QueuePrefixes.TryGetValue(t.FullName, out var prefix);
       prefix = prefix ?? options.DefaultQueuePrefix;
 
       sb = sb ?? new StringBuilder();
