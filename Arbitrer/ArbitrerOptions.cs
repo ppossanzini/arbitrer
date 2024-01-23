@@ -31,7 +31,7 @@ namespace Arbitrer
     /// <summary>
     /// Get the prefix of remote queue
     /// </summary>
-    public Dictionary<Type, string> QueuePrefixes { get; private set; } = new Dictionary<Type, string>();
+    public Dictionary<string, string> QueuePrefixes { get; private set; } = new Dictionary<string, string>();
   }
 
 

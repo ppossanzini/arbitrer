@@ -120,7 +120,7 @@ namespace Arbitrer
         if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".", "_");
       }
 
-      options.QueuePrefixes.TryGetValue(t, out var prefix);
+      options.QueuePrefixes.TryGetValue(t.FullName, out var prefix);
       prefix = prefix ?? options.DefaultQueuePrefix;
 
       sb = sb ?? new StringBuilder();
