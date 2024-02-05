@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.9.RabbitMQ", "Arbi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.9.RabbitMQ.Autofac", "Arbitrer.Legacy\Arbitrer.9.RabbitMQ.Autofac\Arbitrer.9.RabbitMQ.Autofac.csproj", "{321A1107-CE4A-4C8E-9C92-09F085115108}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.GRPC", "Arbitrer.GRPC\Arbitrer.GRPC.csproj", "{26449499-FBBC-4A2A-AE93-EB97A354BAA6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{321A1107-CE4A-4C8E-9C92-09F085115108}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{321A1107-CE4A-4C8E-9C92-09F085115108}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{321A1107-CE4A-4C8E-9C92-09F085115108}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

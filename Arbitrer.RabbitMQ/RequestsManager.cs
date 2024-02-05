@@ -152,6 +152,8 @@ namespace Arbitrer.RabbitMQ
     /// /
     private async Task ConsumeChannelNotification<T>(object sender, BasicDeliverEventArgs ea)
     {
+      var mediator = _provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
+      var arbitrer = mediator as ArbitredMediatr;
       try
       {
         var msg = ea.Body.ToArray();
@@ -185,17 +187,18 @@ namespace Arbitrer.RabbitMQ
 
         var replyProps = _channel.CreateBasicProperties();
         replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
-
-        var mediator = _provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
-
-        var arbitrer = mediator as ArbitredMediatr;
+        
         arbitrer?.StopPropagating();
         await mediator.Publish(message);
-        arbitrer?.ResetPropagating();
+
       }
       catch (Exception ex)
       {
         _logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
+      }
+      finally
+      {
+        arbitrer?.ResetPropagating();
       }
     }
 

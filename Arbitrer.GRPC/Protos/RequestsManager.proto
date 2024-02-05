@@ -1,0 +1,23 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+package Arbitrer.GRPC;
+
+service GrpcServices{
+  rpc ManageArbitrerMessage(RequestMessage) returns (MessageResponse);
+  rpc ManageArbitrerNotification(NotifyMessage) returns (google.protobuf.Empty);
+}
+
+message RequestMessage {
+  string ArbitrerType = 1;
+  string Body = 2;
+}
+
+message MessageResponse {
+  string Body = 1;
+}
+
+message NotifyMessage{
+  string ArbitrerType = 1;
+  string Body = 2;
+}

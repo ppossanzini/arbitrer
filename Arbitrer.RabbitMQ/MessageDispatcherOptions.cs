@@ -85,19 +85,7 @@ namespace Arbitrer.RabbitMQ
     /// <c>true</c> if deduplication is enabled; otherwise, <c>false</c>.
     /// </value>
     public bool DeDuplicationEnabled { get; set; } = true;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether the service worker is enabled.
-    /// </summary>
-    /// <remarks>
-    /// The service worker is responsible for providing offline support and background synchronization
-    /// in web applications. By default, the service worker is disabled.
-    /// </remarks>
-    /// <value>
-    /// <c>true</c> if the service worker is enabled; otherwise, <c>false</c>.
-    /// </value>
-    internal bool EnableServiceWorker { get; set; } = false;
-
+    
     /// <summary>
     /// Gets or sets the serializer settings for JSON serialization and deserialization.
     /// </summary>
