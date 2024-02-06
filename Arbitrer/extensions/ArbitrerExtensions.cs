@@ -69,7 +69,7 @@ namespace Arbitrer
       options.SetAsLocalRequests(localRequests.ToArray, queuePrefix);
       return options;
     }
-    
+
 
     /// <summary>
     /// Infers local notifications for the specified <see cref="ArbitrerOptions"/> object based on the given <paramref name="assemblies"/>.
@@ -201,7 +201,7 @@ namespace Arbitrer
     }
 
     /// <summary>
-    /// Sets the ArbitrerOptions as remote requests.
+    /// Sets the Types as remote requests.
     /// </summary>
     /// <param name="options">The ArbitrerOptions object.</param>
     /// <param name="typesSelect">The function that returns IEnumerable of Type objects.</param>
@@ -215,6 +215,40 @@ namespace Arbitrer
         foreach (var t in typesSelect())
           if (!options.QueuePrefixes.ContainsKey(t.FullName))
             options.QueuePrefixes.Add(t.FullName, queuePrefix);
+      return options;
+    }
+
+    /// <summary>
+    /// Set a prefix for notifications queue name.
+    /// </summary>
+    /// <param name="options">The ArbitrerOptions object.</param>
+    /// <param name="typesSelect">The function that returns IEnumerable of Type objects.</param>
+    /// <returns>The modified ArbitrerOptions object.</returns>
+    public static ArbitrerOptions SetNotificationPrefix(this ArbitrerOptions options, Func<IEnumerable<Type>> typesSelect, string queuePrefix)
+    {
+      if (!string.IsNullOrWhiteSpace(queuePrefix))
+        foreach (var t in typesSelect().Where(t => typeof(INotification).IsAssignableFrom(t)))
+          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+            options.QueuePrefixes.Add(t.FullName, queuePrefix);
+      return options;
+    }
+
+    /// <summary>
+    /// Set a prefix for notifications queue name.
+    /// </summary>
+    /// <param name="options">The ArbitrerOptions object.</param>
+    /// <param name="assemblySelect">The function to select the assemblies.</param>
+    /// <returns>The modified ArbitrerOptions object.</returns>
+    public static ArbitrerOptions SetNotificationPrefix(this ArbitrerOptions options, Func<IEnumerable<Assembly>> assemblySelect, string queuePrefix)
+    {
+      var types = (from a in assemblySelect()
+        from t in a.GetTypes()
+        where typeof(INotification).IsAssignableFrom(t)
+        select t).AsEnumerable();
+      
+      foreach (var t in types)
+        if (!options.QueuePrefixes.ContainsKey(t.FullName))
+          options.QueuePrefixes.Add(t.FullName, queuePrefix);
       return options;
     }
 
