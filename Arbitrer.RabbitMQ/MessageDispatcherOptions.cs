@@ -84,7 +84,7 @@ namespace Arbitrer.RabbitMQ
     /// <value>
     /// <c>true</c> if deduplication is enabled; otherwise, <c>false</c>.
     /// </value>
-    public bool DeDuplicationEnabled { get; set; } = true;
+    public bool DeDuplicationEnabled { get; set; } = false;
     
     /// <summary>
     /// Gets or sets the serializer settings for JSON serialization and deserialization.
