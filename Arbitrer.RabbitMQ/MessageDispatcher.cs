@@ -39,7 +39,7 @@ namespace Arbitrer.RabbitMQ
     /// <summary>
     /// Stores an instance of an object that implements the IConnection interface.
     /// </summary>
-    private IConnection _connection = null;
+    private static IConnection _connection = null;
 
     /// <summary>
     /// The channel used for sending messages.
@@ -86,7 +86,7 @@ namespace Arbitrer.RabbitMQ
     /// /
     private void InitConnection()
     {
-      // Ensuring we have a connetion object
+      // Ensuring we have a connection object
       if (_connection == null)
       {
         logger.LogInformation($"Creating RabbitMQ Connection to '{options.HostName}'...");
@@ -216,11 +216,12 @@ namespace Arbitrer.RabbitMQ
     {
       try
       {
+        this.logger.LogInformation("Closing Connection...");
         _sendChannel?.BasicCancel(_consumerId);
         _sendChannel?.Close();
-        _connection.Close();
+        // _connection.Close();
       }
-      catch
+      catch(Exception )
       {
       }
     }
