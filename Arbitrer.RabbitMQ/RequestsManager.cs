@@ -115,7 +115,15 @@ namespace Arbitrer.RabbitMQ
         var isNotification = typeof(INotification).IsAssignableFrom(t);
         var queueName = $"{t.TypeQueueName(_arbitrerOptions)}${(isNotification ? Guid.NewGuid().ToString() : "")}";
 
-        _channel.QueueDeclare(queue: queueName, durable: _options.Durable, exclusive: isNotification, autoDelete: _options.AutoDelete, arguments: null);
+        var arguments = new Dictionary<string, object>();
+        var timeout = t.QueueTimeout();
+        if (timeout != null)
+        {
+          arguments.Add("x-consumer-timeout", timeout);
+        }
+
+
+        _channel.QueueDeclare(queue: queueName, durable: _options.Durable, exclusive: isNotification, autoDelete: _options.AutoDelete, arguments: arguments);
         _channel.QueueBind(queueName, Constants.ArbitrerExchangeName, t.TypeQueueName(_arbitrerOptions));
 
 
@@ -187,10 +195,9 @@ namespace Arbitrer.RabbitMQ
 
         var replyProps = _channel.CreateBasicProperties();
         replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
-        
+
         arbitrer?.StopPropagating();
         await mediator.Publish(message);
-
       }
       catch (Exception ex)
       {

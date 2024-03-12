@@ -142,5 +142,16 @@ namespace Arbitrer
 
       return sb.ToString().Replace(",]", "]").Replace(".", "_");
     }
+    
+    public static int? QueueTimeout(this Type t)
+    {
+      if (t.CustomAttributes.Any())
+      {
+        var attr = t.GetCustomAttribute<ArbitrerQueueTimeoutAttribute>();
+        if (attr != null) return attr.ConsumerTimeout;
+      }
+
+      return null;
+    }
   }
 }

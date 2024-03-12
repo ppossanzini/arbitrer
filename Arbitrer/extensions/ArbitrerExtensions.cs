@@ -245,7 +245,7 @@ namespace Arbitrer
         from t in a.GetTypes()
         where typeof(INotification).IsAssignableFrom(t)
         select t).AsEnumerable();
-      
+
       foreach (var t in types)
         if (!options.QueuePrefixes.ContainsKey(t.FullName))
           options.QueuePrefixes.Add(t.FullName, queuePrefix);
@@ -288,6 +288,17 @@ namespace Arbitrer
       }
 
       return sb.ToString().Replace(",]", "]").Replace(".", "_");
+    }
+
+    public static int? QueueTimeout(this Type t)
+    {
+      if (t.CustomAttributes.Any())
+      {
+        var attr = t.GetCustomAttribute<ArbitrerQueueTimeoutAttribute>();
+        if (attr != null) return attr.ConsumerTimeout;
+      }
+
+      return null;
     }
   }
 }
