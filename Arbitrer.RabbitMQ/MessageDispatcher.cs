@@ -39,7 +39,7 @@ namespace Arbitrer.RabbitMQ
     /// <summary>
     /// Stores an instance of an object that implements the IConnection interface.
     /// </summary>
-    private static IConnection _connection = null;
+    private IConnection _connection = null;
 
     /// <summary>
     /// The channel used for sending messages.
