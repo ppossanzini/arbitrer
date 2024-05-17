@@ -149,14 +149,35 @@ namespace Arbitrer.RabbitMQ
         _channel.BasicConsume(queue: queueName, autoAck: isNotification, consumer: consumer);
       }
 
-      if (_options.PerChannelQos == 0)
+      try
       {
-        var qos = _arbitrer.GetLocalRequestsTypes().Count();
-        var maxMessages = qos * _options.PerConsumerQos > ushort.MaxValue ? ushort.MaxValue : (ushort)(qos * _options.PerConsumerQos);
-        _channel.BasicQos(maxMessages, maxMessages, true);
+        if (_options.PerChannelQos == 0)
+        {
+          var qos = _arbitrer.GetLocalRequestsTypes().Count();
+          var maxMessages = qos * _options.PerConsumerQos > ushort.MaxValue ? ushort.MaxValue : (ushort)(qos * _options.PerConsumerQos);
+          _logger.LogInformation($"Configuring Qos for channels with: prefetch = 0 and fetch count = {maxMessages}");
+          _channel.BasicQos(0, maxMessages, true);
+        }
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError("Current RabbitMQ does not support Qos for channels");
+        _logger.LogError(ex.Message);
+        _logger.LogError(ex.StackTrace);
       }
 
-      _channel.BasicQos(_options.PerConsumerQos, _options.PerConsumerQos, false);
+      try
+      {
+        _logger.LogInformation($"Configuring Qos for consumers with: prefetch = {Math.Max(_options.PerConsumerQos, (ushort)1)} and fetch count = {Math.Max(_options.PerConsumerQos, (ushort)1)}");
+        _channel.BasicQos(_options.PerConsumerQos, Math.Max(_options.PerConsumerQos, (ushort)1), false);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError("Current RabbitMQ does not support Qos for consumers");
+        _logger.LogError(ex.Message);
+        _logger.LogError(ex.StackTrace);
+      }
+
       return Task.CompletedTask;
     }
 
