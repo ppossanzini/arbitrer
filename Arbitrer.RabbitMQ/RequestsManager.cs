@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -143,13 +144,19 @@ namespace Arbitrer.RabbitMQ
           catch (Exception e)
           {
             _logger.LogError(e, e.Message);
-            throw;
           }
         };
         _channel.BasicConsume(queue: queueName, autoAck: isNotification, consumer: consumer);
       }
 
-      _channel.BasicQos(0, 1, false);
+      if (_options.PerChannelQos == 0)
+      {
+        var qos = _arbitrer.GetLocalRequestsTypes().Count();
+        var maxMessages = qos * _options.PerConsumerQos > ushort.MaxValue ? ushort.MaxValue : (ushort)(qos * _options.PerConsumerQos);
+        _channel.BasicQos(maxMessages, maxMessages, true);
+      }
+
+      _channel.BasicQos(_options.PerConsumerQos, _options.PerConsumerQos, false);
       return Task.CompletedTask;
     }
 
@@ -233,7 +240,6 @@ namespace Arbitrer.RabbitMQ
         var msg = ea.Body.ToArray();
         _logger.LogDebug("Elaborating message : {0}", Encoding.UTF8.GetString(msg));
         var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), _options.SerializerSettings);
-
 
         var mediator = _provider.CreateScope().ServiceProvider.GetRequiredService<IMediator>();
         var response = await mediator.Send(message);

@@ -66,6 +66,9 @@ namespace Arbitrer.RabbitMQ
     /// </remarks>
     public bool Durable = true;
 
+    public uint PerChannelQos { get; set; } = 0;
+    public ushort PerConsumerQos { get; set; } = 1;
+
     /// <summary>
     /// Gets or sets the time-to-live value for deduplication.
     /// </summary>
