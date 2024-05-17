@@ -155,7 +155,7 @@ namespace Arbitrer.RabbitMQ
         {
           var qos = _arbitrer.GetLocalRequestsTypes().Count();
           var maxMessages = qos * _options.PerConsumerQos > ushort.MaxValue ? ushort.MaxValue : (ushort)(qos * _options.PerConsumerQos);
-          _logger.LogInformation($"Configuring Qos for channels with: prefetch = 0 and fetch count = {maxMessages}");
+          _logger.LogInformation($"Configuring Qos for channels with: prefetch = 0 and fetch size = {maxMessages}");
           _channel.BasicQos(0, maxMessages, true);
         }
       }
@@ -168,8 +168,8 @@ namespace Arbitrer.RabbitMQ
 
       try
       {
-        _logger.LogInformation($"Configuring Qos for consumers with: prefetch = {Math.Max(_options.PerConsumerQos, (ushort)1)} and fetch count = {Math.Max(_options.PerConsumerQos, (ushort)1)}");
-        _channel.BasicQos(_options.PerConsumerQos, Math.Max(_options.PerConsumerQos, (ushort)1), false);
+        _logger.LogInformation($"Configuring Qos for consumers with: prefetch = 0 and fetch size = {Math.Max(_options.PerConsumerQos, (ushort)1)}");
+        _channel.BasicQos(0, Math.Max(_options.PerConsumerQos, (ushort)1), false);
       }
       catch (Exception ex)
       {
