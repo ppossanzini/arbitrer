@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Arbitrer.Kafka\Arbitrer.Kafka.csproj" />
+    <ProjectReference Include="..\..\Arbitrer.RabbitMQ\Arbitrer.RabbitMQ.csproj" />
     <ProjectReference Include="..\cqrs.models\cqrs.models.csproj" />
     <ProjectReference Include="..\..\Arbitrer\Arbitrer.csproj" />
   </ItemGroup>
