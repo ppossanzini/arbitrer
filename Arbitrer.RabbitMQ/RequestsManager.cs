@@ -158,6 +158,10 @@ namespace Arbitrer.RabbitMQ
           _logger.LogInformation($"Configuring Qos for channels with: prefetch = 0 and fetch size = {maxMessages}");
           _channel.BasicQos(0, maxMessages, true);
         }
+        else
+        {
+          _channel.BasicQos(0, _options.PerChannelQos > ushort.MaxValue ? ushort.MaxValue : (ushort)_options.PerChannelQos, true);
+        }
       }
       catch (Exception ex)
       {
