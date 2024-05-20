@@ -54,6 +54,7 @@ namespace Arbitrer.RabbitMQ
           VirtualHost = options.VirtualHost,
           Port = options.Port,
           DispatchConsumersAsync = true,
+          ClientProvidedName = options.ClientName
         };
 
         _connection = factory.CreateConnection();
