@@ -97,6 +97,7 @@ namespace Arbitrer.RabbitMQ
           Password = options.Password,
           VirtualHost = options.VirtualHost,
           Port = options.Port,
+          ClientProvidedName = options.ClientName,
           DispatchConsumersAsync = true,
         };
 
@@ -138,6 +139,7 @@ namespace Arbitrer.RabbitMQ
         tcs.TrySetException(new Exception($"Unable to deliver required action: {ea.RoutingKey}"));
       };
 
+      _sendChannel.BasicQos(0, Math.Max(options.PerConsumerQos, (ushort)1), false);
       this._consumerId = _sendChannel.BasicConsume(queue: _replyQueueName, autoAck: true, consumer: _sendConsumer);
     }
 
@@ -221,7 +223,7 @@ namespace Arbitrer.RabbitMQ
         _sendChannel?.Close();
         // _connection.Close();
       }
-      catch(Exception )
+      catch (Exception)
       {
       }
     }

@@ -69,6 +69,7 @@ namespace Arbitrer.RabbitMQ
     public uint PerChannelQos { get; set; } = 0;
     public ushort PerConsumerQos { get; set; } = 1;
 
+    public string ClientName { get; set; }
     /// <summary>
     /// Gets or sets the time-to-live value for deduplication.
     /// </summary>
