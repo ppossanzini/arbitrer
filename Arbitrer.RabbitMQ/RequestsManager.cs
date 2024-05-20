@@ -100,6 +100,7 @@ namespace Arbitrer.RabbitMQ
           VirtualHost = _options.VirtualHost,
           Port = _options.Port,
           DispatchConsumersAsync = true,
+          ClientProvidedName = _options.ClientName
         };
 
         _connection = factory.CreateConnection();
