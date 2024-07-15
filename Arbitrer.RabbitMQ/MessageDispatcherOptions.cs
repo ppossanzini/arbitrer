@@ -60,7 +60,7 @@ namespace Arbitrer.RabbitMQ
     /// If Durable is set to true, it means the object is durable, otherwise, it is not.
     /// </summary>
     /// <remarks>
-    /// Durability is a characteristic that specifies whether an object is able to withstand wear, decay, or damage over time.
+    /// Durability is a Capability that specifies whether an object is able to withstand wear, decay, or damage over time.
     /// Setting Durable to true indicates that the object is designed to be long-lasting and can resist various forms of deterioration.
     /// Conversely, setting Durable to false suggests that the object is not intended to have a long lifespan or may be susceptible to damage.
     /// </remarks>
