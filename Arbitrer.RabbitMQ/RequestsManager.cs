@@ -115,7 +115,9 @@ namespace Arbitrer.RabbitMQ
       {
         if (t is null) continue;
         var isNotification = typeof(INotification).IsAssignableFrom(t);
-        var queueName = $"{t.TypeQueueName(_arbitrerOptions)}${(isNotification ? Guid.NewGuid().ToString() : "")}";
+        var isExclusive = isNotification && !_options.UseRoundRobinNotificationDistribution;
+        var queueName = $"{t.TypeQueueName(_arbitrerOptions)}$" +
+                        $"{(isNotification ? (_options.UseRoundRobinNotificationDistribution ? Assembly.GetEntryAssembly()?.FullName : Guid.NewGuid().ToString()) : "")}";
 
         var arguments = new Dictionary<string, object>();
         var timeout = t.QueueTimeout();
@@ -125,7 +127,9 @@ namespace Arbitrer.RabbitMQ
         }
 
 
-        _channel.QueueDeclare(queue: queueName, durable: _options.Durable, exclusive: isNotification, autoDelete: _options.AutoDelete, arguments: arguments);
+        _channel.QueueDeclare(queue: queueName, durable: _options.Durable,
+          exclusive: isExclusive,
+          autoDelete: _options.AutoDelete, arguments: arguments);
         _channel.QueueBind(queueName, Constants.ArbitrerExchangeName, t.TypeQueueName(_arbitrerOptions));
 
 

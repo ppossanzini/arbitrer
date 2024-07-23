@@ -95,6 +95,8 @@ namespace Arbitrer.RabbitMQ
     /// </summary>
     public JsonSerializerSettings SerializerSettings { get; set; }
 
+    public bool UseRoundRobinNotificationDistribution { get; set; } = false;
+    
     /// Represents the options for message dispatcher.
     /// /
     public MessageDispatcherOptions()
