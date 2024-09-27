@@ -110,6 +110,7 @@ namespace Arbitrer.GRPC.Extensions
       return services;
     }
     
+    
     public static IEndpointRouteBuilder UseGrpcRequestManager(this IEndpointRouteBuilder host)
     {
       host.MapGrpcService<RequestsManager>();

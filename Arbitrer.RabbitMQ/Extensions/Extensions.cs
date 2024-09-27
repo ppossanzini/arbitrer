@@ -82,12 +82,19 @@ namespace Arbitrer
     /// </summary>
     /// <param name="services">The service collection to which the RequestManager will be added.</param>
     /// <returns>The modified service collection.</returns>
+    [Obsolete("use AddRabbitMQRequestManager method instead")]
     public static IServiceCollection ResolveArbitrerCalls(this IServiceCollection services)
     {
       services.AddHostedService<RequestsManager>();
       return services;
     }
 
+    public static IServiceCollection AddRabbitMQRequestManager(this IServiceCollection services)
+    {
+      services.AddHostedService<RequestsManager>();
+      return services;
+    }
+    
     /// <summary>
     /// Computes the hash value of a string using the specified HashAlgorithm.
     /// </summary>
