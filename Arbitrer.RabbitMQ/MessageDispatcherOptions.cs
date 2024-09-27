@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Arbitrer.RabbitMQ
@@ -96,6 +98,9 @@ namespace Arbitrer.RabbitMQ
     public JsonSerializerSettings SerializerSettings { get; set; }
 
     public bool UseRoundRobinNotificationDistribution { get; set; } = false;
+    
+    public HashSet<Type> DispatchOnly { get; private set; } = new HashSet<Type>();
+    public HashSet<Type> DontDispatch { get; private set; } = new HashSet<Type>();
     
     /// Represents the options for message dispatcher.
     /// /

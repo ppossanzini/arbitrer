@@ -17,10 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "sender", "tests\sender\send
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbitrer.Kafka", "Arbitrer.Kafka\Arbitrer.Kafka.csproj", "{52E67D98-DE21-4434-AB34-5FF4FB70C5E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.Autofac", "Arbitrer.Autofac\Arbitrer.Autofac.csproj", "{87C76B91-D332-4CFF-A304-E287F2657515}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.RabbitMQ.Autofac", "Arbitrer.RabbitMQ.Autofac\Arbitrer.RabbitMQ.Autofac.csproj", "{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.GRPC", "Arbitrer.GRPC\Arbitrer.GRPC.csproj", "{26449499-FBBC-4A2A-AE93-EB97A354BAA6}"
 EndProject
 Global
@@ -53,14 +49,6 @@ Global
 		{52E67D98-DE21-4434-AB34-5FF4FB70C5E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52E67D98-DE21-4434-AB34-5FF4FB70C5E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52E67D98-DE21-4434-AB34-5FF4FB70C5E7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{87C76B91-D332-4CFF-A304-E287F2657515}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{87C76B91-D332-4CFF-A304-E287F2657515}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{87C76B91-D332-4CFF-A304-E287F2657515}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{87C76B91-D332-4CFF-A304-E287F2657515}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F1DFD692-10B7-4D6C-88C1-E716B1C065B8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Release|Any CPU.ActiveCfg = Release|Any CPU

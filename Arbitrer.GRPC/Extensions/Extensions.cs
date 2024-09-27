@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Arbitrer.GRPC;
 using Grpc.AspNetCore.Server;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
@@ -30,6 +34,54 @@ namespace Arbitrer.GRPC.Extensions
       });
     }
 
+    public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Assembly>> assemblySelect)
+    {
+      var types = (
+        from a in assemblySelect()
+        from t in a.GetTypes()
+        where typeof(IBaseRequest).IsAssignableFrom(t)
+        select t).AsEnumerable();
+
+      foreach (var t in types)
+        options.DispatchOnly.Add(t);
+
+      return options;
+    }
+
+    public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Type>> typesSelect)
+    {
+      foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
+        options.DispatchOnly.Add(type);
+
+      return options;
+    }
+
+    public static MessageDispatcherOptions DenyDispatchTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Type>> typesSelect)
+    {
+      foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
+        options.DispatchOnly.Add(type);
+
+      return options;
+    }
+
+    public static MessageDispatcherOptions DenyDispatchTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Assembly>> assemblySelect)
+    {
+      var types = (
+        from a in assemblySelect()
+        from t in a.GetTypes()
+        where typeof(IBaseRequest).IsAssignableFrom(t)
+        select t).AsEnumerable();
+
+      foreach (var t in types)
+        options.DontDispatch.Add(t);
+
+      return options;
+    }
+    
 
     /// <summary>
     /// Add the Arbitrer RabbitMQ message dispatcher to the service collection, allowing it to be resolved and used.

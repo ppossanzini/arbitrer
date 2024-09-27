@@ -36,6 +36,9 @@ namespace Arbitrer.GRPC
       this.options = options.Value;
       this.logger = logger;
       this.arbitrerOptions = arbitrerOptions.Value;
+
+      DestinationChannels.Add(this.options.DefaultServiceUri,
+        GrpcChannel.ForAddress(this.options.DefaultServiceUri, this.options.ChannelOptions));
     }
 
 
@@ -51,15 +54,41 @@ namespace Arbitrer.GRPC
         return DestinationChannels[service.Uri];
       }
 
-      return null;
+      return DestinationChannels[options.DefaultServiceUri];
     }
 
+    public Dictionary<string, GrpcServices.GrpcServicesClient> DestinationClients { get; set; } = new();
+
+    public GrpcServices.GrpcServicesClient GetClientFor<T>()
+    {
+      var serviceuri = options.DefaultServiceUri;
+      if (this.options.RemoteTypeServices.TryGetValue(typeof(T), out var service))
+      {
+        serviceuri = service.Uri;
+      }
+
+      if (!DestinationClients.ContainsKey(serviceuri))
+        DestinationClients.Add(serviceuri, new GrpcServices.GrpcServicesClient(GetChannelFor<T>()));
+      return DestinationClients[serviceuri];
+    }
+
+
+    public bool CanDispatch<TRequest>()
+    {
+      if (options.DispatchOnly.Count > 0)
+        return options.DispatchOnly.Contains(typeof(TRequest));
+
+      if (options.DontDispatch.Count > 0)
+        return !options.DontDispatch.Contains(typeof(TRequest));
+
+      return true;
+    }
 
     public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-      var grpcClient = new GrpcServices.GrpcServicesClient(this.GetChannelFor<TRequest>());
+      var grpcClient = GetClientFor<TRequest>();
       var result = await grpcClient.ManageArbitrerMessageAsync(new RequestMessage
       {
         Body = message,
@@ -83,7 +112,7 @@ namespace Arbitrer.GRPC
 
       foreach (var channel in DestinationChannels)
       {
-        var grpcClient = new GrpcServices.GrpcServicesClient(channel.Value);
+        var grpcClient = GetClientFor<TRequest>();
         grpcClient.ManageArbitrerNotificationAsync(new NotifyMessage()
         {
           Body = message,
@@ -96,7 +125,6 @@ namespace Arbitrer.GRPC
 
     public void Dispose()
     {
-      
     }
   }
 }

@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Arbitrer.RabbitMQ;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Arbitrer
@@ -17,11 +21,60 @@ namespace Arbitrer
     /// <param name="services">The service collection to add the message dispatcher to.</param>
     /// <param name="config">The configuration settings for the message dispatcher.</param>
     /// <returns>The updated service collection.</returns>
-    public static IServiceCollection AddArbitrerRabbitMQMessageDispatcher(this IServiceCollection services, Action<MessageDispatcherOptions> config)
+    public static IServiceCollection AddArbitrerRabbitMQMessageDispatcher(this IServiceCollection services,
+      Action<MessageDispatcherOptions> config)
     {
       services.Configure<MessageDispatcherOptions>(config);
-      services.AddSingleton<IExternalMessageDispatcher, MessageDispatcher>();
+      services.AddKeyedSingleton<IExternalMessageDispatcher, MessageDispatcher>(Arbitrer.ArbitrerKeyServicesName);
       return services;
+    }
+
+    public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Assembly>> assemblySelect)
+    {
+      var types = (
+        from a in assemblySelect()
+        from t in a.GetTypes()
+        where typeof(IBaseRequest).IsAssignableFrom(t)
+        select t).AsEnumerable();
+
+      foreach (var t in types)
+        options.DispatchOnly.Add(t);
+
+      return options;
+    }
+
+    public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Type>> typesSelect)
+    {
+      foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
+        options.DispatchOnly.Add(type);
+
+      return options;
+    }
+
+    public static MessageDispatcherOptions DenyDispatchTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Type>> typesSelect)
+    {
+      foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
+        options.DispatchOnly.Add(type);
+
+      return options;
+    }
+
+    public static MessageDispatcherOptions DenyDispatchTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Assembly>> assemblySelect)
+    {
+      var types = (
+        from a in assemblySelect()
+        from t in a.GetTypes()
+        where typeof(IBaseRequest).IsAssignableFrom(t)
+        select t).AsEnumerable();
+
+      foreach (var t in types)
+        options.DontDispatch.Add(t);
+
+      return options;
     }
 
     /// <summary>
@@ -47,12 +100,12 @@ namespace Arbitrer
     {
       byte[] data = hashAlgorithm.ComputeHash(Encoding.UTF8.GetBytes(input));
       var sBuilder = new StringBuilder();
-      
+
       for (int i = 0; i < data.Length; i++)
       {
         sBuilder.Append(data[i].ToString("x2"));
       }
-      
+
       return sBuilder.ToString();
     }
 
@@ -72,7 +125,7 @@ namespace Arbitrer
       {
         sBuilder.Append(data[i].ToString("x2"));
       }
-      
+
       return sBuilder.ToString();
     }
   }

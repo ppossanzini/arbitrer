@@ -93,6 +93,17 @@ namespace Arbitrer.Kafka
       _consumerThread.Start();
     }
 
+    public bool CanDispatch<TRequest>()
+    {
+      if (_options.DispatchOnly.Count > 0)
+        return _options.DispatchOnly.Contains(typeof(TRequest));
+      
+      if(_options.DontDispatch.Count >0)
+        return !_options.DontDispatch.Contains(typeof(TRequest));
+
+      return true;
+    }
+
     /// <summary>
     /// Dispatches a request message to a Kafka topic and waits for a response.
     /// </summary>

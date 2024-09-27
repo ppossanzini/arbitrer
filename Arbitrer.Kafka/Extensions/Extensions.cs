@@ -1,9 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Arbitrer.Kafka;
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -33,6 +37,55 @@ namespace Arbitrer
     {
       services.AddHostedService<RequestsManager>();
       return services;
+    }
+    
+    
+    public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Assembly>> assemblySelect)
+    {
+      var types = (
+        from a in assemblySelect()
+        from t in a.GetTypes()
+        where typeof(IBaseRequest).IsAssignableFrom(t)
+        select t).AsEnumerable();
+
+      foreach (var t in types)
+        options.DispatchOnly.Add(t);
+
+      return options;
+    }
+
+    public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Type>> typesSelect)
+    {
+      foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
+        options.DispatchOnly.Add(type);
+
+      return options;
+    }
+
+    public static MessageDispatcherOptions DenyDispatchTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Type>> typesSelect)
+    {
+      foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
+        options.DispatchOnly.Add(type);
+
+      return options;
+    }
+
+    public static MessageDispatcherOptions DenyDispatchTo(this MessageDispatcherOptions options,
+      Func<IEnumerable<Assembly>> assemblySelect)
+    {
+      var types = (
+        from a in assemblySelect()
+        from t in a.GetTypes()
+        where typeof(IBaseRequest).IsAssignableFrom(t)
+        select t).AsEnumerable();
+
+      foreach (var t in types)
+        options.DontDispatch.Add(t);
+
+      return options;
     }
 
     /// Creates a Kafka topic asynchronously.

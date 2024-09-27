@@ -144,6 +144,16 @@ namespace Arbitrer.RabbitMQ
     }
 
 
+    public bool CanDispatch<TRequest>()
+    {
+      if (options.DispatchOnly.Count > 0)
+        return options.DispatchOnly.Contains(typeof(TRequest));
+      
+      if(options.DontDispatch.Count >0)
+        return !options.DontDispatch.Contains(typeof(TRequest));
+
+      return true;
+    }
     /// <summary>
     /// Dispatches a request and waits for the response.
     /// </summary>

@@ -13,6 +13,9 @@ namespace Arbitrer.Kafka
   /// </summary>
   public class MessageDispatcherOptions
   {
+    public HashSet<Type> DispatchOnly { get; private set; } = new HashSet<Type>();
+    public HashSet<Type> DontDispatch { get; private set; } = new HashSet<Type>();
+    
     public int? TopicPartition { get; set; }
     public string BootstrapServers { get; set; }
     public Offset Offset { get; set; } = Offset.End;
