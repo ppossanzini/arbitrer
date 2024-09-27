@@ -16,11 +16,8 @@ using Microsoft.Extensions.Hosting;
 
 namespace Arbitrer.GRPC.Extensions
 {
-  
-  
   public static class Extensions
   {
-    
     public const string ArbitrerGrpcCorsDefaultPolicy = "ArbitrerGRPCDefault";
 
     public static void AddArbitrerGrpcCors(this CorsOptions corsOptions)
@@ -81,7 +78,31 @@ namespace Arbitrer.GRPC.Extensions
 
       return options;
     }
+
     
+    public static RequestsManagerOptions AcceptMessageFrom(this RequestsManagerOptions options,
+      Func<IEnumerable<Assembly>> assemblySelect)
+    {
+      var types = (
+        from a in assemblySelect()
+        from t in a.GetTypes()
+        where typeof(IBaseRequest).IsAssignableFrom(t)
+        select t).AsEnumerable();
+
+      foreach (var t in types)
+        options.AcceptMessageTypes.Add(t);
+
+      return options;
+    }
+
+    public static RequestsManagerOptions AcceptMessageFrom(this RequestsManagerOptions options,
+      Func<IEnumerable<Type>> typesSelect)
+    {
+      foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
+        options.AcceptMessageTypes.Add(type);
+
+      return options;
+    }
 
     /// <summary>
     /// Add the Arbitrer RabbitMQ message dispatcher to the service collection, allowing it to be resolved and used.
@@ -91,11 +112,10 @@ namespace Arbitrer.GRPC.Extensions
     /// <param name="grpcOptions">Grpc service configuration options, if not specified you need to call AddGrpc()
     /// registration method.</param>
     /// <returns>The updated service collection.</returns>
-    public static IServiceCollection AddArbitrerGrpcDispatcher(this IServiceCollection services, 
-      Action<MessageDispatcherOptions> config, 
+    public static IServiceCollection AddArbitrerGrpcDispatcher(this IServiceCollection services,
+      Action<MessageDispatcherOptions> config,
       Action<GrpcServiceOptions> grpcOptions = null)
     {
-
       if (grpcOptions != null)
       {
         services.Configure(grpcOptions);
@@ -103,14 +123,21 @@ namespace Arbitrer.GRPC.Extensions
       }
 
       services.AddCors(o => o.AddArbitrerGrpcCors());
-      
+
       services.Configure<MessageDispatcherOptions>(config);
       services.AddSingleton<IExternalMessageDispatcher, MessageDispatcher>();
 
       return services;
     }
-    
-    
+
+    public static IServiceCollection AddGrpsRequestManager(this IServiceCollection services, Action<RequestsManagerOptions> options)
+    {
+      if (options != null)
+        services.Configure(options);
+
+      return services;
+    }
+
     public static IEndpointRouteBuilder UseGrpcRequestManager(this IEndpointRouteBuilder host)
     {
       host.MapGrpcService<RequestsManager>();

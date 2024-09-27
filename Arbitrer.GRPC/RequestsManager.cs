@@ -20,7 +20,6 @@ namespace Arbitrer.GRPC
 {
   public class RequestsManager : global::Arbitrer.GRPC.GrpcServices.GrpcServicesBase
   {
-    private readonly ArbitrerOptions _arbitrerOptions;
     private readonly ILogger<RequestsManager> _logger;
     private readonly IServiceProvider _provider;
     private readonly MessageDispatcherOptions _options;
@@ -31,14 +30,20 @@ namespace Arbitrer.GRPC
     private readonly Dictionary<string, Type> _typeMappings;
 
     public RequestsManager(IOptions<MessageDispatcherOptions> options, ILogger<RequestsManager> logger, IServiceProvider provider,
-      IOptions<ArbitrerOptions> arbitrerOptions)
+      IOptions<ArbitrerOptions> arbitrerOptions, IOptions<RequestsManagerOptions> requestsManagerOptions)
     {
-      this._arbitrerOptions = arbitrerOptions.Value;
+
+      if (requestsManagerOptions.Value.AcceptMessageTypes.Count == 0)
+      {
+        foreach (var t in arbitrerOptions.Value.LocalRequests)
+          requestsManagerOptions.Value.AcceptMessageTypes.Add(t);
+      }
+
       this._options = options.Value;
       this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
       this._provider = provider;
 
-      _typeMappings = _arbitrerOptions.LocalRequests.ToDictionary(k => k.TypeQueueName(_arbitrerOptions), v => v);
+      _typeMappings = requestsManagerOptions.Value.AcceptMessageTypes.ToDictionary(k => k.TypeQueueName(arbitrerOptions.Value), v => v);
     }
 
 
