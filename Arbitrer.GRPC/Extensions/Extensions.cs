@@ -4,6 +4,7 @@ using System.Text;
 using Arbitrer.GRPC;
 using Grpc.AspNetCore.Server;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +17,20 @@ namespace Arbitrer.GRPC.Extensions
   public static class Extensions
   {
     
-    const string ArbitrerGrpcCorsDefaultPolicy = "ArbitrerGRPCDefault";
-    
+    public const string ArbitrerGrpcCorsDefaultPolicy = "ArbitrerGRPCDefault";
+
+    public static void AddArbitrerGrpcCors(this CorsOptions corsOptions)
+    {
+      corsOptions.AddPolicy(ArbitrerGrpcCorsDefaultPolicy, builder =>
+      {
+        builder.AllowAnyOrigin()
+          .AllowAnyMethod()
+          .AllowAnyHeader()
+          .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+      });
+    }
+
+
     /// <summary>
     /// Add the Arbitrer RabbitMQ message dispatcher to the service collection, allowing it to be resolved and used.
     /// </summary>
@@ -37,13 +50,7 @@ namespace Arbitrer.GRPC.Extensions
         services.AddGrpc();
       }
 
-      services.AddCors(o => o.AddPolicy(ArbitrerGrpcCorsDefaultPolicy, builder =>
-      {
-        builder.AllowAnyOrigin()
-          .AllowAnyMethod()
-          .AllowAnyHeader()
-          .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
-      }));
+      services.AddCors(o => o.AddArbitrerGrpcCors());
       
       services.Configure<MessageDispatcherOptions>(config);
       services.AddSingleton<IExternalMessageDispatcher, MessageDispatcher>();
@@ -51,13 +58,13 @@ namespace Arbitrer.GRPC.Extensions
       return services;
     }
     
-    public static IEndpointRouteBuilder UseGrpcDispatcher(this IEndpointRouteBuilder host)
+    public static IEndpointRouteBuilder UseGrpcRequestManager(this IEndpointRouteBuilder host)
     {
       host.MapGrpcService<RequestsManager>();
       return host;
     }
 
-    public static IEndpointRouteBuilder UseGrpcWebDispatcher(this IEndpointRouteBuilder host)
+    public static IEndpointRouteBuilder UseGrpcWebRequestsManager(this IEndpointRouteBuilder host)
     {
       host.MapGrpcService<RequestsManager>()
         .EnableGrpcWeb()
