@@ -116,10 +116,10 @@ namespace Arbitrer.GRPC.Extensions
       Action<MessageDispatcherOptions> config,
       Action<GrpcServiceOptions<MessageDispatcher>> grpcOptions = null)
     {
+      var gbuilder = services.AddGrpc();
       if (grpcOptions != null)
       {
-        // services.Configure(grpcOptions);
-        services.AddGrpc().AddServiceOptions<MessageDispatcher>(grpcOptions);
+        gbuilder.AddServiceOptions<MessageDispatcher>(grpcOptions);
       }
 
       services.AddCors(o => o.AddArbitrerGrpcCors());
@@ -130,14 +130,16 @@ namespace Arbitrer.GRPC.Extensions
       return services;
     }
 
-    public static IServiceCollection AddGrpcRequestManager(this IServiceCollection services, Action<RequestsManagerOptions> options, Action<GrpcServiceOptions<RequestsManager>> grpcOptions = null)
+    public static IServiceCollection AddGrpcRequestManager(this IServiceCollection services, Action<RequestsManagerOptions> options,
+      Action<GrpcServiceOptions<RequestsManager>> grpcOptions = null)
     {
       if (options != null)
         services.Configure(options);
-      
+
+      var gbuilder = services.AddGrpc();
       if (grpcOptions != null)
       {
-        services.AddGrpc().AddServiceOptions<RequestsManager>(grpcOptions);
+        gbuilder.AddServiceOptions<RequestsManager>(grpcOptions);
       }
 
       return services;
