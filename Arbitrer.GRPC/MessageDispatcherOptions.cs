@@ -26,15 +26,16 @@ namespace Arbitrer.GRPC
     /// <c>true</c> if deduplication is enabled; otherwise, <c>false</c>.
     /// </value>
     public bool DeDuplicationEnabled { get; set; } = true;
-    
+
     public string DefaultServiceUri { get; set; }
-    public GrpcChannelOptions ChannelOptions { get; set; }
+
+    public GrpcChannelOptions ChannelOptions { get; set; } = new();
 
     public Dictionary<Type, RemoteServiceDefinition> RemoteTypeServices { get; set; } = new();
 
     public HashSet<Type> DispatchOnly { get; private set; } = new HashSet<Type>();
     public HashSet<Type> DontDispatch { get; private set; } = new HashSet<Type>();
-    
+
     public JsonSerializerSettings SerializerSettings { get; set; }
 
     public MessageDispatcherOptions()

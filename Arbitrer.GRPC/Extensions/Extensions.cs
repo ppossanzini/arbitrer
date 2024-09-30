@@ -79,7 +79,7 @@ namespace Arbitrer.GRPC.Extensions
       return options;
     }
 
-    
+
     public static RequestsManagerOptions AcceptMessageFrom(this RequestsManagerOptions options,
       Func<IEnumerable<Assembly>> assemblySelect)
     {
@@ -114,26 +114,31 @@ namespace Arbitrer.GRPC.Extensions
     /// <returns>The updated service collection.</returns>
     public static IServiceCollection AddArbitrerGrpcDispatcher(this IServiceCollection services,
       Action<MessageDispatcherOptions> config,
-      Action<GrpcServiceOptions> grpcOptions = null)
+      Action<GrpcServiceOptions<MessageDispatcher>> grpcOptions = null)
     {
       if (grpcOptions != null)
       {
-        services.Configure(grpcOptions);
-        services.AddGrpc();
+        // services.Configure(grpcOptions);
+        services.AddGrpc().AddServiceOptions<MessageDispatcher>(grpcOptions);
       }
 
       services.AddCors(o => o.AddArbitrerGrpcCors());
 
       services.Configure<MessageDispatcherOptions>(config);
-      services.AddSingleton<IExternalMessageDispatcher, MessageDispatcher>();
+      services.AddKeyedSingleton<IExternalMessageDispatcher, MessageDispatcher>(Arbitrer.ArbitrerKeyServicesName);
 
       return services;
     }
 
-    public static IServiceCollection AddGrpsRequestManager(this IServiceCollection services, Action<RequestsManagerOptions> options)
+    public static IServiceCollection AddGrpcRequestManager(this IServiceCollection services, Action<RequestsManagerOptions> options, Action<GrpcServiceOptions<RequestsManager>> grpcOptions = null)
     {
       if (options != null)
         services.Configure(options);
+      
+      if (grpcOptions != null)
+      {
+        services.AddGrpc().AddServiceOptions<RequestsManager>(grpcOptions);
+      }
 
       return services;
     }

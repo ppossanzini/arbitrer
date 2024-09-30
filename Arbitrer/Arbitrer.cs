@@ -104,7 +104,7 @@ namespace Arbitrer
             ResponseMessage<TResponse> result = null;
             foreach (var dispatcher in this._messageDispatchers)
             {
-                if (!dispatcher.CanDispatch<TRequest>()) continue;
+                if (!dispatcher.CanDispatch<TRequest>()) continue;  
                 result = await dispatcher.Dispatch<TRequest, TResponse>(request);
                 break;
             }
