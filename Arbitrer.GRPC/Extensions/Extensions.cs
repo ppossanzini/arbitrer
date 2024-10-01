@@ -31,7 +31,7 @@ namespace Arbitrer.GRPC.Extensions
       });
     }
 
-    public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
+    public static MessageDispatcherOptions DispatchOnly(this MessageDispatcherOptions options,
       Func<IEnumerable<Assembly>> assemblySelect)
     {
       var types = (
@@ -46,7 +46,7 @@ namespace Arbitrer.GRPC.Extensions
       return options;
     }
 
-    public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
+    public static MessageDispatcherOptions DispatchOnly(this MessageDispatcherOptions options,
       Func<IEnumerable<Type>> typesSelect)
     {
       foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
@@ -55,7 +55,7 @@ namespace Arbitrer.GRPC.Extensions
       return options;
     }
 
-    public static MessageDispatcherOptions DenyDispatchTo(this MessageDispatcherOptions options,
+    public static MessageDispatcherOptions DenyDispatch(this MessageDispatcherOptions options,
       Func<IEnumerable<Type>> typesSelect)
     {
       foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
@@ -64,7 +64,7 @@ namespace Arbitrer.GRPC.Extensions
       return options;
     }
 
-    public static MessageDispatcherOptions DenyDispatchTo(this MessageDispatcherOptions options,
+    public static MessageDispatcherOptions DenyDispatch(this MessageDispatcherOptions options,
       Func<IEnumerable<Assembly>> assemblySelect)
     {
       var types = (
@@ -80,7 +80,7 @@ namespace Arbitrer.GRPC.Extensions
     }
 
 
-    public static RequestsManagerOptions AcceptMessageFrom(this RequestsManagerOptions options,
+    public static RequestsManagerOptions AcceptedMessages(this RequestsManagerOptions options,
       Func<IEnumerable<Assembly>> assemblySelect)
     {
       var types = (
@@ -95,7 +95,7 @@ namespace Arbitrer.GRPC.Extensions
       return options;
     }
 
-    public static RequestsManagerOptions AcceptMessageFrom(this RequestsManagerOptions options,
+    public static RequestsManagerOptions AcceptedMessages(this RequestsManagerOptions options,
       Func<IEnumerable<Type>> typesSelect)
     {
       foreach (var type in typesSelect().Where(t => typeof(IBaseRequest).IsAssignableFrom(t)))
