@@ -84,7 +84,8 @@ namespace Arbitrer.GRPC
       return true;
     }
 
-    public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+    public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, string queueName = null,
+      CancellationToken cancellationToken = default)
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
@@ -92,7 +93,7 @@ namespace Arbitrer.GRPC
       var result = await grpcClient.ManageArbitrerMessageAsync(new RequestMessage
       {
         Body = message,
-        ArbitrerType = typeof(TRequest).TypeQueueName(arbitrerOptions)
+        ArbitrerType = queueName ?? typeof(TRequest).TypeQueueName(arbitrerOptions)
       });
       return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result.Body, options.SerializerSettings);
     }
@@ -104,11 +105,11 @@ namespace Arbitrer.GRPC
     /// <param name="request">The request message to send.</param>
     /// <param name="cancellationToken">A cancellation token to cancel the notification operation.</param>
     /// <returns>A task representing the asynchronous notification operation.</returns>
-    public Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
+    public Task Notify<TRequest>(TRequest request, string queueName = null, CancellationToken cancellationToken = default) where TRequest : INotification
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-      logger.LogInformation($"Sending notifications of: {typeof(TRequest).Name}/{request.GetType().TypeQueueName(arbitrerOptions)}");
+      logger.LogInformation($"Sending notifications of: {typeof(TRequest).Name}/{queueName ?? request.GetType().TypeQueueName(arbitrerOptions)}");
 
       foreach (var channel in DestinationChannels)
       {
@@ -116,7 +117,7 @@ namespace Arbitrer.GRPC
         grpcClient.ManageArbitrerNotificationAsync(new NotifyMessage()
         {
           Body = message,
-          ArbitrerType = typeof(TRequest).TypeQueueName(arbitrerOptions)
+          ArbitrerType = queueName ?? typeof(TRequest).TypeQueueName(arbitrerOptions)
         });
       }
 

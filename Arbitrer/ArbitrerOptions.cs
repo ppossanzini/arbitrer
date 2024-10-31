@@ -8,7 +8,7 @@ namespace Arbitrer
   public class ArbitrerOptions
   {
     public string DefaultQueuePrefix { get; set; } = String.Empty;
-    
+
     /// <summary>
     /// Gets or sets the behaviour of the arbitrer.
     /// </summary>
@@ -32,6 +32,8 @@ namespace Arbitrer
     /// Get the prefix of remote queue
     /// </summary>
     public Dictionary<string, string> QueuePrefixes { get; private set; } = new Dictionary<string, string>();
+
+    public Dictionary<Type, string> QueueNames { get; private set; } = new Dictionary<Type, string>();
   }
 
 

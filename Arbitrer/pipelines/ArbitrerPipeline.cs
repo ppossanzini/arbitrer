@@ -37,12 +37,21 @@ namespace Arbitrer.Pipelines
     /// <exception cref="InvalidHandlerException">Thrown when the handler location is invalid.</exception>
     public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
     {
+      object req = request;
+      string queueName = null;
+
+      if (typeof(IExplicitQueue).IsAssignableFrom(request.GetType()))
+      {
+        queueName = ((IExplicitQueue)request).QueueName;
+        req = ((IExplicitQueue)request).MessageObject;
+      }
+
       try
       {
-        switch (arbitrer.GetLocation<TRequest>())
+        switch (arbitrer.GetLocation(req.GetType()))
         {
           case HandlerLocation.Local: return await next().ConfigureAwait(false);
-          case HandlerLocation.Remote: return await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request);
+          case HandlerLocation.Remote: return await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request, queueName);
           default: throw new InvalidHandlerException();
         }
       }
@@ -65,12 +74,21 @@ namespace Arbitrer.Pipelines
     /// <returns>The response data.</returns>
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
+      object req = request;
+      string queueName = null;
+
+      if (typeof(IExplicitQueue).IsAssignableFrom(request.GetType()))
+      {
+        queueName = ((IExplicitQueue)request).QueueName;
+        req = ((IExplicitQueue)request).MessageObject;
+      }
+
       try
       {
-        switch (arbitrer.GetLocation<TRequest>())
+        switch (arbitrer.GetLocation(req.GetType()))
         {
           case HandlerLocation.Local: return await next().ConfigureAwait(false);
-          case HandlerLocation.Remote: return await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request);
+          case HandlerLocation.Remote: return await arbitrer.InvokeRemoteHandler<TRequest, TResponse>(request, queueName);
           default: throw new InvalidHandlerException();
         }
       }

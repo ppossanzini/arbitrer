@@ -148,12 +148,13 @@ namespace Arbitrer.RabbitMQ
     {
       if (options.DispatchOnly.Count > 0)
         return options.DispatchOnly.Contains(typeof(TRequest));
-      
-      if(options.DontDispatch.Count >0)
+
+      if (options.DontDispatch.Count > 0)
         return !options.DontDispatch.Contains(typeof(TRequest));
 
       return true;
     }
+
     /// <summary>
     /// Dispatches a request and waits for the response.
     /// </summary>
@@ -162,7 +163,8 @@ namespace Arbitrer.RabbitMQ
     /// <param name="request">The request object.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The task representing the response message.</returns>
-    public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+    public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, string queueName = null,
+      CancellationToken cancellationToken = default)
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
@@ -173,7 +175,7 @@ namespace Arbitrer.RabbitMQ
 
       _sendChannel.BasicPublish(
         exchange: Constants.ArbitrerExchangeName,
-        routingKey: typeof(TRequest).TypeQueueName(arbitrerOptions),
+        routingKey: queueName ?? typeof(TRequest).TypeQueueName(arbitrerOptions),
         mandatory: true,
         body: Encoding.UTF8.GetBytes(message),
         basicProperties: GetBasicProperties(correlationId));
@@ -191,15 +193,15 @@ namespace Arbitrer.RabbitMQ
     /// <param name="request">The request message to send.</param>
     /// <param name="cancellationToken">A cancellation token to cancel the notification operation.</param>
     /// <returns>A task representing the asynchronous notification operation.</returns>
-    public Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
+    public Task Notify<TRequest>(TRequest request, string queueName = null, CancellationToken cancellationToken = default) where TRequest : INotification
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{request.GetType().TypeQueueName(arbitrerOptions)}");
+      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{queueName ?? request.GetType().TypeQueueName(arbitrerOptions)}");
 
       _sendChannel.BasicPublish(
         exchange: Constants.ArbitrerExchangeName,
-        routingKey: request.GetType().TypeQueueName(arbitrerOptions),
+        routingKey: queueName ?? request.GetType().TypeQueueName(arbitrerOptions),
         mandatory: false,
         body: Encoding.UTF8.GetBytes(message)
       );

@@ -97,8 +97,8 @@ namespace Arbitrer.Kafka
     {
       if (_options.DispatchOnly.Count > 0)
         return _options.DispatchOnly.Contains(typeof(TRequest));
-      
-      if(_options.DontDispatch.Count >0)
+
+      if (_options.DontDispatch.Count > 0)
         return !_options.DontDispatch.Contains(typeof(TRequest));
 
       return true;
@@ -112,7 +112,8 @@ namespace Arbitrer.Kafka
     /// <param name="request">The request message to be dispatched.</param>
     /// <param name="cancellationToken">The cancellation token to cancel the dispatch operation.</param>
     /// <returns>A task that represents the asynchronous dispatch operation. The task result contains the response message.</returns>
-    public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+    public async Task<Messages.ResponseMessage<TResponse>> Dispatch<TRequest, TResponse>(TRequest request, string queueName = null,
+      CancellationToken cancellationToken = default)
     {
       var correlationId = Guid.NewGuid().ToString();
       var message = JsonConvert.SerializeObject(new KafkaMessage<TRequest>
@@ -127,7 +128,7 @@ namespace Arbitrer.Kafka
       _callbackMapper.TryAdd(correlationId, tcs);
 
       await _producer.ProduceAsync(
-        topic: typeof(TRequest).TypeQueueName(_arbitrerOptions),
+        topic: queueName ?? typeof(TRequest).TypeQueueName(_arbitrerOptions),
         message: new Message<Null, string> { Value = message }, cancellationToken);
 
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
@@ -144,14 +145,14 @@ namespace Arbitrer.Kafka
     /// <param name="request">The request object.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A Task representing the asynchronous operation.</returns>
-    public async Task Notify<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : INotification
+    public async Task Notify<TRequest>(TRequest request, string queueName = null, CancellationToken cancellationToken = default) where TRequest : INotification
     {
       var message = JsonConvert.SerializeObject(request, _options.SerializerSettings);
 
-      _logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{request.GetType().TypeQueueName(_arbitrerOptions)}");
+      _logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{queueName ?? request.GetType().TypeQueueName(_arbitrerOptions)}");
 
       await _producer.ProduceAsync(
-        topic: typeof(TRequest).TypeQueueName(_arbitrerOptions),
+        topic: queueName ?? typeof(TRequest).TypeQueueName(_arbitrerOptions),
         message: new Message<Null, string> { Value = message }, cancellationToken);
     }
 
