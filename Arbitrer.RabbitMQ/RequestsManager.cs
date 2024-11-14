@@ -285,8 +285,9 @@ namespace Arbitrer.RabbitMQ
       }
       finally
       {
-        _channel.BasicPublish(exchange: "", routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps,
-          body: Encoding.UTF8.GetBytes(responseMsg ?? ""));
+        if (!string.IsNullOrWhiteSpace(ea.BasicProperties.ReplyTo))
+          _channel.BasicPublish(exchange: "", routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps,
+            body: Encoding.UTF8.GetBytes(responseMsg ?? ""));
         _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
       }
     }
