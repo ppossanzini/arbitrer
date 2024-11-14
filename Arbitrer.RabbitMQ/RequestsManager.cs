@@ -114,7 +114,7 @@ namespace Arbitrer.RabbitMQ
       foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
         if (t is null) continue;
-        var isNotification = typeof(INotification).IsAssignableFrom(t);
+        var isNotification = typeof(INotification).IsAssignableFrom(t) && !typeof(IBaseRequest).IsAssignableFrom(t);
         var isExclusive = isNotification && !_options.UseRoundRobinNotificationDistribution;
         var queueName = $"{t.TypeQueueName(_arbitrerOptions)}$" +
                         $"{(isNotification ? (_options.UseRoundRobinNotificationDistribution ? Assembly.GetEntryAssembly()?.FullName : Guid.NewGuid().ToString()) : "")}";
@@ -136,7 +136,7 @@ namespace Arbitrer.RabbitMQ
         var consumer = new AsyncEventingBasicConsumer(_channel);
 
         var consumerMethod = typeof(RequestsManager)
-          .GetMethod(isNotification ? "ConsumeChannelNotification" : "ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)?
+          .GetMethod(isNotification ? nameof(ConsumeChannelNotification) : nameof(ConsumeChannelMessage), BindingFlags.Instance | BindingFlags.NonPublic)?
           .MakeGenericMethod(t);
 
         consumer.Received += async (s, ea) =>
