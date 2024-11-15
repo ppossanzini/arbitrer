@@ -50,10 +50,6 @@ namespace Arbitrer.RabbitMQ
     /// </summary>
     private IModel _channel = null;
 
-    /// <summary>
-    /// A HashSet used for deduplication cache.
-    /// </summary>
-    private readonly HashSet<string> _deduplicationcache = new HashSet<string>();
 
     /// <summary>
     /// Represents a SHA256 hash algorithm instance used for hashing data.
@@ -114,10 +110,8 @@ namespace Arbitrer.RabbitMQ
       foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
         if (t is null) continue;
-        var isNotification = typeof(INotification).IsAssignableFrom(t) && !typeof(IBaseRequest).IsAssignableFrom(t);
-        var isExclusive = isNotification && !_options.UseRoundRobinNotificationDistribution;
-        var queueName = $"{t.TypeQueueName(_arbitrerOptions)}$" +
-                        $"{(isNotification ? (_options.UseRoundRobinNotificationDistribution ? Assembly.GetEntryAssembly()?.FullName : Guid.NewGuid().ToString()) : "")}";
+        var isNotification = t.IsNotification();
+        var queueName = t.ArbitrerQueueName(_arbitrerOptions);
 
         var arguments = new Dictionary<string, object>();
         var timeout = t.QueueTimeout();
@@ -128,9 +122,8 @@ namespace Arbitrer.RabbitMQ
 
 
         _channel.QueueDeclare(queue: queueName, durable: _options.Durable,
-          exclusive: isExclusive,
           autoDelete: _options.AutoDelete, arguments: arguments);
-        _channel.QueueBind(queueName, Constants.ArbitrerExchangeName, t.TypeQueueName(_arbitrerOptions));
+        _channel.QueueBind(queueName, Constants.ArbitrerExchangeName, t.ArbitrerTypeName(_arbitrerOptions));
 
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -202,30 +195,6 @@ namespace Arbitrer.RabbitMQ
       try
       {
         var msg = ea.Body.ToArray();
-
-        if (_options.DeDuplicationEnabled)
-        {
-          var hash = msg.GetHash(_hasher);
-          lock (_deduplicationcache)
-            if (_deduplicationcache.Contains(hash))
-            {
-              _logger.LogDebug($"duplicated message received : {ea.Exchange}/{ea.RoutingKey}");
-              return;
-            }
-
-          lock (_deduplicationcache)
-            _deduplicationcache.Add(hash);
-
-          // Do not await this task
-#pragma warning disable CS4014
-          Task.Run(async () =>
-          {
-            await Task.Delay(_options.DeDuplicationTTL);
-            lock (_deduplicationcache)
-              _deduplicationcache.Remove(hash);
-          });
-#pragma warning restore CS4014
-        }
 
         _logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
         var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), _options.SerializerSettings);

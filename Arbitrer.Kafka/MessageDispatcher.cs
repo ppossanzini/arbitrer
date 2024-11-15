@@ -128,7 +128,7 @@ namespace Arbitrer.Kafka
       _callbackMapper.TryAdd(correlationId, tcs);
 
       await _producer.ProduceAsync(
-        topic: queueName ?? typeof(TRequest).TypeQueueName(_arbitrerOptions),
+        topic: queueName ?? typeof(TRequest).ArbitrerTypeName(_arbitrerOptions),
         message: new Message<Null, string> { Value = message }, cancellationToken);
 
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
@@ -149,10 +149,10 @@ namespace Arbitrer.Kafka
     {
       var message = JsonConvert.SerializeObject(request, _options.SerializerSettings);
 
-      _logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{queueName ?? request.GetType().TypeQueueName(_arbitrerOptions)}");
+      _logger.LogInformation($"Sending message to: {Consts.ArbitrerExchangeName}/{queueName ?? request.GetType().ArbitrerTypeName(_arbitrerOptions)}");
 
       await _producer.ProduceAsync(
-        topic: queueName ?? typeof(TRequest).TypeQueueName(_arbitrerOptions),
+        topic: queueName ?? typeof(TRequest).ArbitrerTypeName(_arbitrerOptions),
         message: new Message<Null, string> { Value = message }, cancellationToken);
     }
 

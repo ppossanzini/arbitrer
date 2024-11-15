@@ -93,7 +93,7 @@ namespace Arbitrer.GRPC
       var result = await grpcClient.ManageArbitrerMessageAsync(new RequestMessage
       {
         Body = message,
-        ArbitrerType = queueName ?? typeof(TRequest).TypeQueueName(arbitrerOptions)
+        ArbitrerType = queueName ?? typeof(TRequest).ArbitrerTypeName(arbitrerOptions)
       });
       return JsonConvert.DeserializeObject<Messages.ResponseMessage<TResponse>>(result.Body, options.SerializerSettings);
     }
@@ -109,7 +109,7 @@ namespace Arbitrer.GRPC
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-      logger.LogInformation($"Sending notifications of: {typeof(TRequest).Name}/{queueName ?? request.GetType().TypeQueueName(arbitrerOptions)}");
+      logger.LogInformation($"Sending notifications of: {typeof(TRequest).Name}/{queueName ?? request.GetType().ArbitrerTypeName(arbitrerOptions)}");
 
       foreach (var channel in DestinationChannels)
       {
@@ -117,7 +117,7 @@ namespace Arbitrer.GRPC
         grpcClient.ManageArbitrerNotificationAsync(new NotifyMessage()
         {
           Body = message,
-          ArbitrerType = queueName ?? typeof(TRequest).TypeQueueName(arbitrerOptions)
+          ArbitrerType = queueName ?? typeof(TRequest).ArbitrerTypeName(arbitrerOptions)
         });
       }
 

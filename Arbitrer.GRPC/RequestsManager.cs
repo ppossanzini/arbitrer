@@ -43,7 +43,7 @@ namespace Arbitrer.GRPC
       this._logger = logger ?? throw new ArgumentNullException(nameof(logger));
       this._provider = provider;
 
-      _typeMappings = requestsManagerOptions.Value.AcceptMessageTypes.ToDictionary(k => k.TypeQueueName(arbitrerOptions.Value), v => v);
+      _typeMappings = requestsManagerOptions.Value.AcceptMessageTypes.ToDictionary(k => k.ArbitrerTypeName(arbitrerOptions.Value), v => v);
     }
 
 

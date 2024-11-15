@@ -99,7 +99,7 @@ namespace Arbitrer
     /// <returns>The response object.</returns>
     public async Task<TResponse> InvokeRemoteHandler<TRequest, TResponse>(TRequest request, string queueName = null)
     {
-      _logger.LogDebug($"Invoking remote handler for: {queueName ?? typeof(TRequest).TypeQueueName(_options)}");
+      _logger.LogDebug($"Invoking remote handler for: {queueName ?? typeof(TRequest).ArbitrerTypeName(_options)}");
 
       ResponseMessage<TResponse> result = null;
       foreach (var dispatcher in this._messageDispatchers)
@@ -109,7 +109,7 @@ namespace Arbitrer
         break;
       }
 
-      _logger.LogDebug($"Remote request for {queueName ?? typeof(TRequest).TypeQueueName(_options)} completed!");
+      _logger.LogDebug($"Remote request for {queueName ?? typeof(TRequest).ArbitrerTypeName(_options)} completed!");
 
       if (result == null)
       {
@@ -132,10 +132,10 @@ namespace Arbitrer
     /// <returns>A task representing the asynchronous operation.</returns>
     public Task SendRemoteNotification<TRequest>(TRequest request, string queueName = null) where TRequest : INotification
     {
-      _logger.LogDebug($"Invoking remote handler for: {queueName ?? typeof(TRequest).TypeQueueName(_options)}");
+      _logger.LogDebug($"Invoking remote handler for: {queueName ?? typeof(TRequest).ArbitrerTypeName(_options)}");
       Task.WaitAll(_messageDispatchers.Select(i => i.Notify(request, queueName)).ToArray());
 
-      _logger.LogDebug($"Remote request for {queueName ?? typeof(TRequest).TypeQueueName(_options)} completed!");
+      _logger.LogDebug($"Remote request for {queueName ?? typeof(TRequest).ArbitrerTypeName(_options)} completed!");
       return Task.CompletedTask;
     }
 

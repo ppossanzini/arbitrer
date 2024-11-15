@@ -72,32 +72,12 @@ namespace Arbitrer.RabbitMQ
     public ushort PerConsumerQos { get; set; } = 1;
 
     public string ClientName { get; set; }
-    /// <summary>
-    /// Gets or sets the time-to-live value for deduplication.
-    /// </summary>
-    /// <remarks>
-    /// The DeDuplicationTTL property determines the amount of time, in milliseconds, that an item can be considered duplicate
-    /// before it is removed from the deduplication cache. The default value is 5000 milliseconds (5 seconds).
-    /// </remarks>
-    /// <value>
-    /// The time-to-live value for deduplication.
-    /// </value>
-    public int DeDuplicationTTL { get; set; } = 5000;
-
-    /// <summary>
-    /// Gets or sets a value indicating whether duplicate entries are enabled for deduplication.
-    /// </summary>
-    /// <value>
-    /// <c>true</c> if deduplication is enabled; otherwise, <c>false</c>.
-    /// </value>
-    public bool DeDuplicationEnabled { get; set; } = false;
     
     /// <summary>
     /// Gets or sets the serializer settings for JSON serialization and deserialization.
     /// </summary>
     public JsonSerializerSettings SerializerSettings { get; set; }
-
-    public bool UseRoundRobinNotificationDistribution { get; set; } = false;
+    
     
     public HashSet<Type> DispatchOnly { get; private set; } = new HashSet<Type>();
     public HashSet<Type> DontDispatch { get; private set; } = new HashSet<Type>();

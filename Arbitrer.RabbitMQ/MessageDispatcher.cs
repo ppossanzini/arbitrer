@@ -175,7 +175,7 @@ namespace Arbitrer.RabbitMQ
 
       _sendChannel.BasicPublish(
         exchange: Constants.ArbitrerExchangeName,
-        routingKey: queueName ?? typeof(TRequest).TypeQueueName(arbitrerOptions),
+        routingKey: queueName ?? typeof(TRequest).ArbitrerTypeName(arbitrerOptions),
         mandatory: true,
         body: Encoding.UTF8.GetBytes(message),
         basicProperties: GetBasicProperties(correlationId));
@@ -197,11 +197,11 @@ namespace Arbitrer.RabbitMQ
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
-      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{queueName ?? request.GetType().TypeQueueName(arbitrerOptions)}");
+      logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{queueName ?? request.GetType().ArbitrerTypeName(arbitrerOptions)}");
 
       _sendChannel.BasicPublish(
         exchange: Constants.ArbitrerExchangeName,
-        routingKey: queueName ?? request.GetType().TypeQueueName(arbitrerOptions),
+        routingKey: queueName ?? request.GetType().ArbitrerTypeName(arbitrerOptions),
         mandatory: false,
         body: Encoding.UTF8.GetBytes(message)
       );

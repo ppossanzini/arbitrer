@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 // ReSharper disable AssignNullToNotNullAttribute
 
@@ -115,9 +116,9 @@ namespace Arbitrer
     {
       options.LocalRequests.Add(typeof(T));
 
-      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.QueuePrefixes.ContainsKey(typeof(T).FullName))
+      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.TypePrefixes.ContainsKey(typeof(T).FullName))
       {
-        options.QueuePrefixes.Add(typeof(T).FullName, queuePrefix);
+        options.TypePrefixes.Add(typeof(T).FullName, queuePrefix);
         logger?.LogInformation($"Added prefix to request ${typeof(T).FullName}");
       }
 
@@ -135,9 +136,9 @@ namespace Arbitrer
     {
       options.LocalRequests.Add(typeof(T));
 
-      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.QueuePrefixes.ContainsKey(typeof(T).FullName))
+      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.TypePrefixes.ContainsKey(typeof(T).FullName))
       {
-        options.QueuePrefixes.Add(typeof(T).FullName, queuePrefix);
+        options.TypePrefixes.Add(typeof(T).FullName, queuePrefix);
         logger?.LogInformation($"Added prefix to request ${typeof(T).FullName}");
       }
 
@@ -157,9 +158,9 @@ namespace Arbitrer
     {
       options.RemoteRequests.Add(typeof(T));
 
-      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.QueuePrefixes.ContainsKey(typeof(T).FullName))
+      if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.TypePrefixes.ContainsKey(typeof(T).FullName))
       {
-        options.QueuePrefixes.Add(typeof(T).FullName, queuePrefix);
+        options.TypePrefixes.Add(typeof(T).FullName, queuePrefix);
         logger?.LogInformation($"Added prefix to request ${typeof(T).FullName}");
       }
 
@@ -188,9 +189,9 @@ namespace Arbitrer
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in types)
-          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+          if (!options.TypePrefixes.ContainsKey(t.FullName))
           {
-            options.QueuePrefixes.Add(t.FullName, queuePrefix);
+            options.TypePrefixes.Add(t.FullName, queuePrefix);
             logger?.LogInformation($"Added prefix to request ${t.FullName}");
           }
 
@@ -213,9 +214,9 @@ namespace Arbitrer
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in typesSelect())
-          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+          if (!options.TypePrefixes.ContainsKey(t.FullName))
           {
-            options.QueuePrefixes.Add(t.FullName, queuePrefix);
+            options.TypePrefixes.Add(t.FullName, queuePrefix);
             logger?.LogInformation($"Added prefix to request ${t.FullName}");
           }
 
@@ -242,9 +243,9 @@ namespace Arbitrer
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in types)
-          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+          if (!options.TypePrefixes.ContainsKey(t.FullName))
           {
-            options.QueuePrefixes.Add(t.FullName, queuePrefix);
+            options.TypePrefixes.Add(t.FullName, queuePrefix);
             logger?.LogInformation($"Added prefix to request ${t.FullName}");
           }
 
@@ -271,9 +272,9 @@ namespace Arbitrer
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in types)
-          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+          if (!options.TypePrefixes.ContainsKey(t.FullName))
           {
-            options.QueuePrefixes.Add(t.FullName, queuePrefix);
+            options.TypePrefixes.Add(t.FullName, queuePrefix);
             logger?.LogInformation($"Added prefix to request ${t.FullName}");
           }
 
@@ -297,13 +298,18 @@ namespace Arbitrer
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in types)
-          if (!options.QueuePrefixes.ContainsKey(t.FullName))
+          if (!options.TypePrefixes.ContainsKey(t.FullName))
           {
-            options.QueuePrefixes.Add(t.FullName, queuePrefix);
+            options.TypePrefixes.Add(t.FullName, queuePrefix);
             logger?.LogInformation($"Added prefix to notification ${t.FullName}");
           }
 
       return options;
+    }
+
+    public static bool IsNotification(this Type t)
+    {
+      return typeof(INotification).IsAssignableFrom(t) && !typeof(IBaseRequest).IsAssignableFrom(t);
     }
 
     public static ArbitrerOptions SetTypeQueueName<T>(this ArbitrerOptions options, string queueName) where T : IBaseRequest
@@ -340,14 +346,15 @@ namespace Arbitrer
         logger?.LogWarning("SetNotificationPrefix : No Notification classes found in assemblies");
 
       foreach (var t in types)
-        if (!options.QueuePrefixes.ContainsKey(t.FullName))
+        if (!options.TypePrefixes.ContainsKey(t.FullName))
         {
-          options.QueuePrefixes.Add(t.FullName, queuePrefix);
+          options.TypePrefixes.Add(t.FullName, queuePrefix);
           logger?.LogInformation($"Added prefix to notification ${t.FullName}");
         }
 
       return options;
     }
+
 
     /// <summary>
     /// Gets the queue name for the specified type.
@@ -355,17 +362,15 @@ namespace Arbitrer
     /// <param name="t">The type.</param>
     /// <param name="sb">The <see cref="StringBuilder"/> instance to append the queue name to (optional).</param>
     /// <returns>The queue name for the specified type.</returns>
-    public static string TypeQueueName(this Type t, ArbitrerOptions options, StringBuilder sb = null)
+    public static string ArbitrerTypeName(this Type t, ArbitrerOptions options, StringBuilder sb = null)
     {
-      if (options.QueueNames.TryGetValue(t, out string queueName)) return queueName;
-
       if (t.CustomAttributes.Any())
       {
         var attr = t.GetCustomAttribute<ArbitrerQueueNameAttribute>();
         if (attr != null) return $"{t.Namespace}.{attr.Name}".Replace(".", "_");
       }
 
-      options.QueuePrefixes.TryGetValue(t.FullName, out var prefix);
+      options.TypePrefixes.TryGetValue(t.FullName, out var prefix);
       prefix = prefix ?? options.DefaultQueuePrefix;
 
       sb = sb ?? new StringBuilder();
@@ -378,7 +383,7 @@ namespace Arbitrer
         sb.Append("[");
         foreach (var ta in t.GenericTypeArguments)
         {
-          ta.TypeQueueName(options, sb);
+          ta.ArbitrerTypeName(options, sb);
           sb.Append(",");
         }
 

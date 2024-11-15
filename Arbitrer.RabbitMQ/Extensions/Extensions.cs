@@ -29,6 +29,19 @@ namespace Arbitrer
       return services;
     }
 
+    public static string ArbitrerQueueName(this Type t, ArbitrerOptions options, StringBuilder sb = null)
+    {
+      if (options.QueueNames.TryGetValue(t, out string queueName)) return queueName;
+      
+      sb = sb ?? new StringBuilder();
+      sb.Append(t.ArbitrerTypeName(options));
+      
+      sb.Append("$");
+      if (t.IsNotification())
+        sb.Append(Guid.NewGuid().ToString());
+      return sb.ToString();
+    }
+    
     public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
       Func<IEnumerable<Assembly>> assemblySelect)
     {

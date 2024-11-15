@@ -74,24 +74,24 @@ namespace Arbitrer.Kafka
       foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
         if (t is null) continue;
-        _provider.CreateTopicAsync(_options, t.TypeQueueName(_arbitrerOptions));
-        var isNotification = typeof(INotification).IsAssignableFrom(t);
+        _provider.CreateTopicAsync(_options, t.ArbitrerTypeName(_arbitrerOptions));
 
-        if (isNotification)
+
+        if (t.IsNotification())
         {
-          notificationsSubscriptions.Add(t.TypeQueueName(_arbitrerOptions));
+          notificationsSubscriptions.Add(t.ArbitrerTypeName(_arbitrerOptions));
           var consumerMethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelNotification", BindingFlags.Instance | BindingFlags.NonPublic)?
             .MakeGenericMethod(t);
-          _methods.Add(t.TypeQueueName(_arbitrerOptions), consumerMethod);
+          _methods.Add(t.ArbitrerTypeName(_arbitrerOptions), consumerMethod);
         }
         else
         {
-          requestSubscriptions.Add(t.TypeQueueName(_arbitrerOptions));
+          requestSubscriptions.Add(t.ArbitrerTypeName(_arbitrerOptions));
           var consumerMethod = typeof(RequestsManager)
             .GetMethod("ConsumeChannelMessage", BindingFlags.Instance | BindingFlags.NonPublic)?
             .MakeGenericMethod(t);
-          _methods.Add(t.TypeQueueName(_arbitrerOptions), consumerMethod);
+          _methods.Add(t.ArbitrerTypeName(_arbitrerOptions), consumerMethod);
         }
       }
 
