@@ -122,6 +122,7 @@ namespace Arbitrer.RabbitMQ
 
 
         _channel.QueueDeclare(queue: queueName, durable: _options.Durable,
+          exclusive: false,
           autoDelete: _options.AutoDelete, arguments: arguments);
         _channel.QueueBind(queueName, Constants.ArbitrerExchangeName, t.ArbitrerTypeName(_arbitrerOptions));
 
