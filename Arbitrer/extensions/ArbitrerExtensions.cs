@@ -312,7 +312,7 @@ namespace Arbitrer
       return typeof(INotification).IsAssignableFrom(t) && !typeof(IBaseRequest).IsAssignableFrom(t);
     }
 
-    public static ArbitrerOptions SetTypeQueueName<T>(this ArbitrerOptions options, string queueName) where T : IBaseRequest
+    public static ArbitrerOptions SetTypeQueueName<T>(this ArbitrerOptions options, string queueName) 
     {
       if (options.QueueNames.ContainsKey(typeof(T)))
       {
