@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -312,15 +313,46 @@ namespace Arbitrer
       return typeof(INotification).IsAssignableFrom(t) && !typeof(IBaseRequest).IsAssignableFrom(t);
     }
 
-    public static ArbitrerOptions SetTypeQueueName<T>(this ArbitrerOptions options, string queueName) 
+    public static ArbitrerOptions SetTypeQueueName<T>(this ArbitrerOptions options, string queueName)
     {
-      if (options.QueueNames.ContainsKey(typeof(T)))
+      options.SetTypeQueueName(typeof(T), queueName);
+      return options;
+    }
+
+    public static ArbitrerOptions SetTypeQueueName(this ArbitrerOptions options, Type type, string queueName)
+    {
+      if (options.QueueNames.ContainsKey(type))
       {
-        options.QueueNames[typeof(T)] = queueName;
+        options.QueueNames[type] = queueName;
       }
       else
       {
-        options.QueueNames.Add(typeof(T), queueName);
+        options.QueueNames.Add(type, queueName);
+      }
+
+      return options;
+    }
+
+    public static ArbitrerOptions SetTypesQueueName(this ArbitrerOptions options, Func<IEnumerable<Type>> typeselect, Func<Type, string> typeNameFunction)
+    {
+      var types = typeselect();
+      foreach (var t in types)
+      {
+        var result = typeNameFunction(t);
+        options.SetTypeQueueName(t, result);
+      }
+
+      return options;
+    }
+
+    public static ArbitrerOptions SetTypesQueueName(this ArbitrerOptions options, Func<IEnumerable<Type>> typeselect, Func<string, string> typeNameFunction)
+    {
+      var types = typeselect();
+      foreach (var t in types)
+      {
+        var name = t.ArbitrerTypeName(options);
+        var result = typeNameFunction(name);
+        options.SetTypeQueueName(t, result);
       }
 
       return options;
@@ -357,11 +389,11 @@ namespace Arbitrer
 
 
     /// <summary>
-    /// Gets the queue name for the specified type.
+    /// Gets the type name used for the specified type.
     /// </summary>
     /// <param name="t">The type.</param>
-    /// <param name="sb">The <see cref="StringBuilder"/> instance to append the queue name to (optional).</param>
-    /// <returns>The queue name for the specified type.</returns>
+    /// <param name="sb">The <see cref="StringBuilder"/> instance to append the type name to (optional).</param>
+    /// <returns>The type name for the specified type.</returns>
     public static string ArbitrerTypeName(this Type t, ArbitrerOptions options, StringBuilder sb = null)
     {
       if (t.CustomAttributes.Any())
