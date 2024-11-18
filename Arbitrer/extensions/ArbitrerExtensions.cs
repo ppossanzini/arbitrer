@@ -344,19 +344,7 @@ namespace Arbitrer
 
       return options;
     }
-
-    public static ArbitrerOptions SetTypesQueueName(this ArbitrerOptions options, Func<IEnumerable<Type>> typeselect, Func<string, string> typeNameFunction)
-    {
-      var types = typeselect();
-      foreach (var t in types)
-      {
-        var name = t.ArbitrerTypeName(options);
-        var result = typeNameFunction(name);
-        options.SetTypeQueueName(t, result);
-      }
-
-      return options;
-    }
+    
 
     /// <summary>
     /// Set a prefix for notifications queue name.
