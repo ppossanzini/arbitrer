@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -48,7 +49,7 @@ namespace Arbitrer.RabbitMQ
     /// <summary>
     /// Represents the channel used for communication.
     /// </summary>
-    private IModel _channel = null;
+    private IChannel _channel = null;
 
 
     /// <summary>
@@ -83,7 +84,7 @@ namespace Arbitrer.RabbitMQ
     /// </summary>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
       if (_connection == null)
       {
@@ -95,13 +96,14 @@ namespace Arbitrer.RabbitMQ
           Password = _options.Password,
           VirtualHost = _options.VirtualHost,
           Port = _options.Port,
-          DispatchConsumersAsync = true,
+
           ClientProvidedName = _options.ClientName
         };
 
-        _connection = factory.CreateConnection();
-        _channel = _connection.CreateModel();
-        _channel.ExchangeDeclare(Constants.ArbitrerExchangeName, ExchangeType.Topic);
+        _connection = await factory.CreateConnectionAsync(cancellationToken);
+        _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
+
+        await _channel.ExchangeDeclareAsync(Constants.ArbitrerExchangeName, ExchangeType.Topic, cancellationToken: cancellationToken);
 
         _logger.LogInformation("ARBITRER: ready !");
       }
@@ -122,10 +124,10 @@ namespace Arbitrer.RabbitMQ
         }
 
 
-        _channel.QueueDeclare(queue: queueName, durable:  _options.Durable,
+        await _channel.QueueDeclareAsync(queue: queueName, durable: _options.Durable,
           exclusive: isNotification && !isDurableNotification,
-          autoDelete: _options.AutoDelete, arguments: arguments);
-        _channel.QueueBind(queueName, Constants.ArbitrerExchangeName, t.ArbitrerTypeName(_arbitrerOptions));
+          autoDelete: _options.AutoDelete, arguments: arguments, cancellationToken: cancellationToken);
+        await _channel.QueueBindAsync(queueName, Constants.ArbitrerExchangeName, t.ArbitrerTypeName(_arbitrerOptions), cancellationToken: cancellationToken);
 
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
@@ -134,7 +136,8 @@ namespace Arbitrer.RabbitMQ
           .GetMethod(isNotification ? nameof(ConsumeChannelNotification) : nameof(ConsumeChannelMessage), BindingFlags.Instance | BindingFlags.NonPublic)?
           .MakeGenericMethod(t);
 
-        consumer.Received += async (s, ea) =>
+
+        consumer.ReceivedAsync += async (s, ea) =>
         {
           try
           {
@@ -146,7 +149,8 @@ namespace Arbitrer.RabbitMQ
             _logger.LogError(e, e.Message);
           }
         };
-        _channel.BasicConsume(queue: queueName, autoAck: isNotification, consumer: consumer);
+
+        await _channel.BasicConsumeAsync(queue: queueName, autoAck: isNotification, consumer: consumer, cancellationToken: cancellationToken);
       }
 
       try
@@ -156,11 +160,12 @@ namespace Arbitrer.RabbitMQ
           var qos = _arbitrer.GetLocalRequestsTypes().Count();
           var maxMessages = qos * _options.PerConsumerQos > ushort.MaxValue ? ushort.MaxValue : (ushort)(qos * _options.PerConsumerQos);
           _logger.LogInformation($"Configuring Qos for channels with: prefetch = 0 and fetch size = {maxMessages}");
-          _channel.BasicQos(0, maxMessages, true);
+          await _channel.BasicQosAsync(0, maxMessages, true, cancellationToken: cancellationToken);
         }
         else
         {
-          _channel.BasicQos(0, _options.PerChannelQos > ushort.MaxValue ? ushort.MaxValue : (ushort)_options.PerChannelQos, true);
+          await _channel.BasicQosAsync(0, _options.PerChannelQos > ushort.MaxValue ? ushort.MaxValue : (ushort)_options.PerChannelQos, true,
+            cancellationToken: cancellationToken);
         }
       }
       catch (Exception ex)
@@ -173,7 +178,7 @@ namespace Arbitrer.RabbitMQ
       try
       {
         _logger.LogInformation($"Configuring Qos for consumers with: prefetch = 0 and fetch size = {Math.Max(_options.PerConsumerQos, (ushort)1)}");
-        _channel.BasicQos(0, Math.Max(_options.PerConsumerQos, (ushort)1), false);
+        await _channel.BasicQosAsync(0, Math.Max(_options.PerConsumerQos, (ushort)1), false, cancellationToken: cancellationToken);
       }
       catch (Exception ex)
       {
@@ -181,8 +186,7 @@ namespace Arbitrer.RabbitMQ
         _logger.LogError(ex.Message);
         _logger.LogError(ex.StackTrace);
       }
-
-      return Task.CompletedTask;
+      
     }
 
     /// <summary>
@@ -200,9 +204,6 @@ namespace Arbitrer.RabbitMQ
 
         _logger.LogDebug("Elaborating notification : {0}", Encoding.UTF8.GetString(msg));
         var message = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(msg), _options.SerializerSettings);
-
-        var replyProps = _channel.CreateBasicProperties();
-        replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
 
         arbitrer?.StopPropagating();
         await mediator.Publish(message);
@@ -233,7 +234,7 @@ namespace Arbitrer.RabbitMQ
     private async Task ConsumeChannelMessage<T>(object sender, BasicDeliverEventArgs ea)
     {
       string responseMsg = null;
-      var replyProps = _channel.CreateBasicProperties();
+      var replyProps = new BasicProperties();
       try
       {
         replyProps.CorrelationId = ea.BasicProperties.CorrelationId;
@@ -257,9 +258,9 @@ namespace Arbitrer.RabbitMQ
       finally
       {
         if (!string.IsNullOrWhiteSpace(ea.BasicProperties.ReplyTo))
-          _channel.BasicPublish(exchange: "", routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps,
-            body: Encoding.UTF8.GetBytes(responseMsg ?? ""));
-        _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+          await _channel.BasicPublishAsync(exchange: "", routingKey: ea.BasicProperties.ReplyTo, basicProperties: replyProps,
+            body: Encoding.UTF8.GetBytes(responseMsg ?? ""), mandatory: true);
+        await _channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
       }
     }
 
@@ -268,11 +269,11 @@ namespace Arbitrer.RabbitMQ
     /// </summary>
     /// <param name="cancellationToken">A <see cref="CancellationToken"/> used to cancel the operation.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
       try
       {
-        _channel?.Close();
+        _channel?.CloseAsync(cancellationToken);
       }
       catch
       {
@@ -280,13 +281,12 @@ namespace Arbitrer.RabbitMQ
 
       try
       {
-        _connection?.Close();
+        _connection?.CloseAsync(cancellationToken);
       }
       catch
       {
       }
-
-      return Task.CompletedTask;
+      
     }
   }
 }

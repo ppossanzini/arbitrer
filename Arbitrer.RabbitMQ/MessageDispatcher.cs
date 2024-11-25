@@ -44,7 +44,7 @@ namespace Arbitrer.RabbitMQ
     /// <summary>
     /// The channel used for sending messages.
     /// </summary>
-    private IModel _sendChannel = null;
+    private IChannel _sendChannel = null;
 
     /// <summary>
     /// Represents the name of the reply queue.
@@ -79,12 +79,12 @@ namespace Arbitrer.RabbitMQ
       this.logger = logger;
       this.arbitrerOptions = arbitrerOptions.Value;
 
-      this.InitConnection();
+      this.InitConnection().Wait();
     }
 
     /// Initializes the RabbitMQ connection and sets up the necessary channels and consumers.
     /// /
-    private void InitConnection()
+    private async Task InitConnection()
     {
       // Ensuring we have a connection object
       if (_connection == null)
@@ -98,25 +98,24 @@ namespace Arbitrer.RabbitMQ
           VirtualHost = options.VirtualHost,
           Port = options.Port,
           ClientProvidedName = options.ClientName,
-          DispatchConsumersAsync = true,
         };
 
-        _connection = factory.CreateConnection();
+        _connection = await factory.CreateConnectionAsync();
       }
 
-      _sendChannel = _connection.CreateModel();
-      _sendChannel.ExchangeDeclare(Constants.ArbitrerExchangeName, ExchangeType.Topic);
+      _sendChannel = await _connection.CreateChannelAsync();
+      await _sendChannel.ExchangeDeclareAsync(Constants.ArbitrerExchangeName, ExchangeType.Topic);
       // _channel.ConfirmSelect();
 
       var queueName = $"{options.QueueName}.{Process.GetCurrentProcess().Id}.{DateTime.Now.Ticks}";
-      _replyQueueName = _sendChannel.QueueDeclare(queue: queueName).QueueName;
+      _replyQueueName = (await _sendChannel.QueueDeclareAsync(queue: queueName)).QueueName;
       _sendConsumer = new AsyncEventingBasicConsumer(_sendChannel);
-      _sendConsumer.Received += (s, ea) =>
+      _sendConsumer.ReceivedAsync += (s, ea) =>
       {
         TaskCompletionSource<string> tcs = null;
         try
         {
-          if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out tcs))
+          if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId ?? "", out tcs))
             return Task.CompletedTask;
 
 
@@ -133,14 +132,15 @@ namespace Arbitrer.RabbitMQ
         return Task.CompletedTask;
       };
 
-      _sendChannel.BasicReturn += (s, ea) =>
+      _sendChannel.BasicReturnAsync += (s, ea) =>
       {
-        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId, out var tcs)) return;
+        if (!_callbackMapper.TryRemove(ea.BasicProperties.CorrelationId ?? "", out var tcs)) return Task.CompletedTask;
         tcs.TrySetException(new Exception($"Unable to deliver required action: {ea.RoutingKey}"));
+        return Task.CompletedTask;
       };
 
-      _sendChannel.BasicQos(0, Math.Max(options.PerConsumerQos, (ushort)1), false);
-      this._consumerId = _sendChannel.BasicConsume(queue: _replyQueueName, autoAck: true, consumer: _sendConsumer);
+      await _sendChannel.BasicQosAsync(0, Math.Max(options.PerConsumerQos, (ushort)1), false);
+      this._consumerId = await _sendChannel.BasicConsumeAsync(queue: _replyQueueName, autoAck: true, consumer: _sendConsumer);
     }
 
 
@@ -173,12 +173,12 @@ namespace Arbitrer.RabbitMQ
       var tcs = new TaskCompletionSource<string>();
       var rr = _callbackMapper.TryAdd(correlationId, tcs);
 
-      _sendChannel.BasicPublish(
+      await _sendChannel.BasicPublishAsync(
         exchange: Constants.ArbitrerExchangeName,
         routingKey: queueName ?? typeof(TRequest).ArbitrerTypeName(arbitrerOptions),
         mandatory: true,
         body: Encoding.UTF8.GetBytes(message),
-        basicProperties: GetBasicProperties(correlationId));
+        basicProperties: GetBasicProperties(correlationId), cancellationToken: cancellationToken);
 
       cancellationToken.Register(() => _callbackMapper.TryRemove(correlationId, out var tmp));
       var result = await tcs.Task;
@@ -193,20 +193,19 @@ namespace Arbitrer.RabbitMQ
     /// <param name="request">The request message to send.</param>
     /// <param name="cancellationToken">A cancellation token to cancel the notification operation.</param>
     /// <returns>A task representing the asynchronous notification operation.</returns>
-    public Task Notify<TRequest>(TRequest request, string queueName = null, CancellationToken cancellationToken = default) where TRequest : INotification
+    public async Task Notify<TRequest>(TRequest request, string queueName = null, CancellationToken cancellationToken = default) where TRequest : INotification
     {
       var message = JsonConvert.SerializeObject(request, options.SerializerSettings);
 
       logger.LogInformation($"Sending message to: {Constants.ArbitrerExchangeName}/{queueName ?? request.GetType().ArbitrerTypeName(arbitrerOptions)}");
 
-      _sendChannel.BasicPublish(
+      await _sendChannel.BasicPublishAsync(
         exchange: Constants.ArbitrerExchangeName,
         routingKey: queueName ?? request.GetType().ArbitrerTypeName(arbitrerOptions),
         mandatory: false,
         body: Encoding.UTF8.GetBytes(message)
       );
-
-      return Task.CompletedTask;
+      
     }
 
 
@@ -215,9 +214,9 @@ namespace Arbitrer.RabbitMQ
     /// </summary>
     /// <param name="correlationId">The correlation ID associated with the properties.</param>
     /// <returns>The basic properties object.</returns>
-    private IBasicProperties GetBasicProperties(string correlationId)
+    private BasicProperties GetBasicProperties(string correlationId)
     {
-      var props = _sendChannel.CreateBasicProperties();
+      var props = new BasicProperties();
       props.CorrelationId = correlationId;
       props.ReplyTo = _replyQueueName;
       return props;
@@ -231,8 +230,8 @@ namespace Arbitrer.RabbitMQ
       try
       {
         this.logger.LogInformation("Closing Connection...");
-        _sendChannel?.BasicCancel(_consumerId);
-        _sendChannel?.Close();
+        _sendChannel?.BasicCancelAsync(_consumerId).Wait();
+        _sendChannel?.CloseAsync().Wait();
         // _connection.Close();
       }
       catch (Exception)
