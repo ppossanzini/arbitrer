@@ -65,7 +65,7 @@ namespace Arbitrer
 
       foreach (var n in notifications.Where(t => t.IsNotification()))
       {
-        options.SetTypeQueueName(n, $"{n.ArbitrerTypeName(options)}${Assembly.GetEntryAssembly()?.FullName}");
+        options.SetTypeQueueName(n, $"{n.ArbitrerTypeName(options)}${Assembly.GetEntryAssembly()?.GetName().Name.Replace(".","_")}");
       }
 
       return options;

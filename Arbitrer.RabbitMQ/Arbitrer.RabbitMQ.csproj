@@ -22,10 +22,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="RabbitMQ.Client" Version="7.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.*" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="MediatR" Version="12.*" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Arbitrer\Arbitrer.csproj" />
