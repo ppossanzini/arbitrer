@@ -111,6 +111,7 @@ namespace Arbitrer.RabbitMQ
       {
         if (t is null) continue;
         var isNotification = t.IsNotification();
+        var isDurableNotification = isNotification && _arbitrerOptions.QueueNames.ContainsKey(t);
         var queueName = t.ArbitrerQueueName(_arbitrerOptions);
 
         var arguments = new Dictionary<string, object>();
@@ -121,8 +122,8 @@ namespace Arbitrer.RabbitMQ
         }
 
 
-        _channel.QueueDeclare(queue: queueName, durable: _options.Durable,
-          exclusive: false,
+        _channel.QueueDeclare(queue: queueName, durable:  _options.Durable,
+          exclusive: isNotification && !isDurableNotification,
           autoDelete: _options.AutoDelete, arguments: arguments);
         _channel.QueueBind(queueName, Constants.ArbitrerExchangeName, t.ArbitrerTypeName(_arbitrerOptions));
 
