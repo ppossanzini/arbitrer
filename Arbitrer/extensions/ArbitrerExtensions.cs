@@ -115,7 +115,7 @@ namespace Arbitrer
     public static ArbitrerOptions SetAsLocalRequest<T>(this ArbitrerOptions options, string queuePrefix = null, ILogger logger = null)
       where T : IBaseRequest
     {
-      options.LocalRequests.Add(typeof(T));
+      options.LocalTypes.Add(typeof(T));
 
       if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.TypePrefixes.ContainsKey(typeof(T).FullName))
       {
@@ -135,7 +135,7 @@ namespace Arbitrer
     public static ArbitrerOptions ListenForNotification<T>(this ArbitrerOptions options, string queuePrefix = null, ILogger logger = null)
       where T : INotification
     {
-      options.LocalRequests.Add(typeof(T));
+      options.LocalTypes.Add(typeof(T));
 
       if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.TypePrefixes.ContainsKey(typeof(T).FullName))
       {
@@ -157,7 +157,7 @@ namespace Arbitrer
     public static ArbitrerOptions SetAsRemoteRequest<T>(this ArbitrerOptions options, string queuePrefix = null, ILogger logger = null)
       where T : IBaseRequest
     {
-      options.RemoteRequests.Add(typeof(T));
+      options.RemoteTypes.Add(typeof(T));
 
       if (!string.IsNullOrWhiteSpace(queuePrefix) && !options.TypePrefixes.ContainsKey(typeof(T).FullName))
       {
@@ -186,7 +186,7 @@ namespace Arbitrer
         select t).AsEnumerable();
 
       foreach (var t in types)
-        options.LocalRequests.Add(t);
+        options.LocalTypes.Add(t);
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in types)
@@ -211,7 +211,7 @@ namespace Arbitrer
       ILogger logger = null)
     {
       foreach (var t in typesSelect())
-        options.LocalRequests.Add(t);
+        options.LocalTypes.Add(t);
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in typesSelect())
@@ -240,7 +240,7 @@ namespace Arbitrer
         where typeof(IBaseRequest).IsAssignableFrom(t) || typeof(INotification).IsAssignableFrom(t)
         select t).AsEnumerable();
       foreach (var t in types)
-        options.RemoteRequests.Add(t);
+        options.RemoteTypes.Add(t);
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in types)
@@ -269,7 +269,7 @@ namespace Arbitrer
         logger?.LogWarning("SetAsRemoteRequests : No Requests classes found in assemblies");
 
       foreach (var t in types)
-        options.RemoteRequests.Add(t);
+        options.RemoteTypes.Add(t);
 
       if (!string.IsNullOrWhiteSpace(queuePrefix))
         foreach (var t in types)

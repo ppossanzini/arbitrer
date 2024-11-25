@@ -35,7 +35,7 @@ namespace Arbitrer.GRPC
 
       if (requestsManagerOptions.Value.AcceptMessageTypes.Count == 0)
       {
-        foreach (var t in arbitrerOptions.Value.LocalRequests)
+        foreach (var t in arbitrerOptions.Value.LocalTypes)
           requestsManagerOptions.Value.AcceptMessageTypes.Add(t);
       }
 

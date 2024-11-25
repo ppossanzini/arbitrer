@@ -45,7 +45,7 @@ namespace Arbitrer
     /// </summary>
     /// <param name="t">The type to check.</param>
     /// <returns>True if the type has a local handler registered, False otherwise.</returns>
-    public bool HasLocalHandler(Type t) => this._options.LocalRequests.Any(i => i == t);
+    public bool HasLocalHandler(Type t) => this._options.LocalTypes.Any(i => i == t);
 
     /// <summary>
     /// Determines if the specified type has a remote handler.
@@ -61,7 +61,7 @@ namespace Arbitrer
     /// </summary>
     /// <param name="t">The type to check.</param>
     /// <returns>True if the type has a remote handler; otherwise, false.</returns>
-    public bool HasRemoteHandler(Type t) => this._options.RemoteRequests.Any(i => i == t);
+    public bool HasRemoteHandler(Type t) => this._options.RemoteTypes.Any(i => i == t);
 
 
     /// <summary>
@@ -145,7 +145,7 @@ namespace Arbitrer
     /// <returns>
     /// An IEnumerable of Type containing the local request types.
     /// </returns>
-    public IEnumerable<Type> GetLocalRequestsTypes() => _options.LocalRequests;
+    public IEnumerable<Type> GetLocalRequestsTypes() => _options.LocalTypes;
 
     /// <summary>
     /// Retrieves the collection of remote request types.
@@ -153,7 +153,7 @@ namespace Arbitrer
     /// <returns>
     /// Returns an enumerable collection of <see cref="Type"/> objects representing remote request types.
     /// </returns>
-    public IEnumerable<Type> GetRemoteRequestsTypes() => _options.RemoteRequests;
+    public IEnumerable<Type> GetRemoteRequestsTypes() => _options.RemoteTypes;
   }
 
   public enum HandlerLocation

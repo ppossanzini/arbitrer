@@ -21,12 +21,12 @@ namespace Arbitrer
     /// Gets or sets the collection of local requests.
     /// </summary>
     /// <value>The local requests.</value>
-    public HashSet<Type> LocalRequests { get; private set; } = new HashSet<Type>();
+    public HashSet<Type> LocalTypes { get; private set; } = new HashSet<Type>();
 
     /// <summary>
     /// Gets the set of remote requests supported by the application.
     /// </summary>
-    public HashSet<Type> RemoteRequests { get; private set; } = new HashSet<Type>();
+    public HashSet<Type> RemoteTypes { get; private set; } = new HashSet<Type>();
 
     /// <summary>
     /// Get the prefix of remote queue

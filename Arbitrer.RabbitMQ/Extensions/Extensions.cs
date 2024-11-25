@@ -32,16 +32,16 @@ namespace Arbitrer
     public static string ArbitrerQueueName(this Type t, ArbitrerOptions options, StringBuilder sb = null)
     {
       if (options.QueueNames.TryGetValue(t, out string queueName)) return queueName;
-      
+
       sb = sb ?? new StringBuilder();
       sb.Append(t.ArbitrerTypeName(options));
-      
+
       sb.Append("$");
       if (t.IsNotification())
         sb.Append(Guid.NewGuid().ToString());
       return sb.ToString();
     }
-    
+
     public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
       Func<IEnumerable<Assembly>> assemblySelect)
     {
@@ -53,6 +53,20 @@ namespace Arbitrer
 
       foreach (var t in types)
         options.DispatchOnly.Add(t);
+
+      return options;
+    }
+
+    public static ArbitrerOptions NotificationsInASingleQueue(this ArbitrerOptions options, Func<IEnumerable<Type>, IEnumerable<Type>> notificationTypes = null)
+    {
+      var notifications = options.LocalTypes.Where(t => t.IsNotification());
+      if (notificationTypes != null)
+        notifications = notificationTypes(notifications);
+
+      foreach (var n in notifications.Where(t => t.IsNotification()))
+      {
+        options.SetTypeQueueName(n, $"{n.ArbitrerTypeName(options)}${Assembly.GetEntryAssembly()?.FullName}");
+      }
 
       return options;
     }
@@ -107,7 +121,7 @@ namespace Arbitrer
       services.AddHostedService<RequestsManager>();
       return services;
     }
-    
+
     /// <summary>
     /// Computes the hash value of a string using the specified HashAlgorithm.
     /// </summary>
