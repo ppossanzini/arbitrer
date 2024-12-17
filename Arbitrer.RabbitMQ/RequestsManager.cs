@@ -104,26 +104,32 @@ namespace Arbitrer.RabbitMQ
       await Task.Delay(TimeSpan.FromMinutes(2));
       while (true)
       {
-        var toremove = new HashSet<Type>();
+        var torebind = new HashSet<Type>();
 
         foreach (var k in _consumers)
         {
           if (!k.Value.IsRunning)
           {
             _logger.LogError($"Stopping consumer for {k.Key}: The consumer is stopped for {k.Value.ShutdownReason?.Exception?.Message ?? "unknown reason"}");
-            toremove.Add(k.Key);
+            torebind.Add(k.Key);
           }
         }
 
-        foreach (var t in toremove)
+        foreach (var t in torebind)
         {
           if (_consumers.ContainsKey(t))
             _consumers.Remove(t);
         }
 
-        await CheckRequestsConsumers(CancellationToken.None);
+        if (torebind.Any())
+        {
+          await CheckConnection(CancellationToken.None);
+          await CheckRequestsConsumers(CancellationToken.None);
+          await ValidateConnectionQos(CancellationToken.None);
+        }
+        
 
-        toremove.Clear();
+        torebind.Clear();
         await Task.Delay(TimeSpan.FromMinutes(2));
       }
     }
