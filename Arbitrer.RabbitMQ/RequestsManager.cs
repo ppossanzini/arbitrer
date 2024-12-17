@@ -51,6 +51,9 @@ namespace Arbitrer.RabbitMQ
     /// </summary>
     private IChannel _channel = null;
 
+    private Thread _watchguard = null;
+
+    private Dictionary<Type, AsyncEventingBasicConsumer> _consumers = new Dictionary<Type, AsyncEventingBasicConsumer>();
 
     /// <summary>
     /// Represents a SHA256 hash algorithm instance used for hashing data.
@@ -86,29 +89,47 @@ namespace Arbitrer.RabbitMQ
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-      if (_connection == null)
+      await CheckConnection(cancellationToken);
+
+      await CheckRequestsConsumers(cancellationToken);
+
+      await ValidateConnectionQos(cancellationToken);
+
+      _watchguard = new Thread(() => Watchguard()) { IsBackground = true };
+      _watchguard.Start();
+    }
+
+    private async void Watchguard()
+    {
+      await Task.Delay(TimeSpan.FromMinutes(2));
+      while (true)
       {
-        _logger.LogInformation($"ARBITRER: Creating RabbitMQ Conection to '{_options.HostName}'...");
-        var factory = new ConnectionFactory
+        var toremove = new HashSet<Type>();
+
+        foreach (var k in _consumers)
         {
-          HostName = _options.HostName,
-          UserName = _options.UserName,
-          Password = _options.Password,
-          VirtualHost = _options.VirtualHost,
-          Port = _options.Port,
+          if (!k.Value.IsRunning)
+          {
+            _logger.LogError($"Stopping consumer for {k.Key}: The consumer is stopped for {k.Value.ShutdownReason?.Exception?.Message ?? "unknown reason"}");
+            toremove.Add(k.Key);
+          }
+        }
 
-          ClientProvidedName = _options.ClientName
-        };
+        foreach (var t in toremove)
+        {
+          if (_consumers.ContainsKey(t))
+            _consumers.Remove(t);
+        }
 
-        _connection = await factory.CreateConnectionAsync(cancellationToken);
-        _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
+        await CheckRequestsConsumers(CancellationToken.None);
 
-        await _channel.ExchangeDeclareAsync(Constants.ArbitrerExchangeName, ExchangeType.Topic, cancellationToken: cancellationToken);
-
-        _logger.LogInformation("ARBITRER: ready !");
+        toremove.Clear();
+        await Task.Delay(TimeSpan.FromMinutes(2));
       }
+    }
 
-
+    private async Task CheckRequestsConsumers(CancellationToken cancellationToken)
+    {
       foreach (var t in _arbitrer.GetLocalRequestsTypes())
       {
         if (t is null) continue;
@@ -131,6 +152,7 @@ namespace Arbitrer.RabbitMQ
 
 
         var consumer = new AsyncEventingBasicConsumer(_channel);
+        _consumers.Add(t, consumer);
 
         var consumerMethod = typeof(RequestsManager)
           .GetMethod(isNotification ? nameof(ConsumeChannelNotification) : nameof(ConsumeChannelMessage), BindingFlags.Instance | BindingFlags.NonPublic)?
@@ -152,7 +174,10 @@ namespace Arbitrer.RabbitMQ
 
         await _channel.BasicConsumeAsync(queue: queueName, autoAck: isNotification, consumer: consumer, cancellationToken: cancellationToken);
       }
+    }
 
+    private async Task ValidateConnectionQos(CancellationToken cancellationToken)
+    {
       try
       {
         if (_options.PerChannelQos == 0)
@@ -186,8 +211,38 @@ namespace Arbitrer.RabbitMQ
         _logger.LogError(ex.Message);
         _logger.LogError(ex.StackTrace);
       }
-      
     }
+
+    private async Task CheckConnection(CancellationToken cancellationToken)
+    {
+      if (_connection != null && _connection.IsOpen)
+      {
+        _connection = null;
+      }
+
+      if (_connection == null)
+      {
+        _logger.LogInformation($"ARBITRER: Creating RabbitMQ Connection to '{_options.HostName}'...");
+        var factory = new ConnectionFactory
+        {
+          HostName = _options.HostName,
+          UserName = _options.UserName,
+          Password = _options.Password,
+          VirtualHost = _options.VirtualHost,
+          Port = _options.Port,
+
+          ClientProvidedName = _options.ClientName
+        };
+
+        _connection = await factory.CreateConnectionAsync(cancellationToken);
+        _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
+
+        await _channel.ExchangeDeclareAsync(Constants.ArbitrerExchangeName, ExchangeType.Topic, cancellationToken: cancellationToken);
+
+        _logger.LogInformation("ARBITRER: ready !");
+      }
+    }
+
 
     /// <summary>
     /// ConsumeChannelNotification is a private asynchronous method that handles the consumption of channel notifications. </summary>
@@ -286,7 +341,6 @@ namespace Arbitrer.RabbitMQ
       catch
       {
       }
-      
     }
   }
 }
