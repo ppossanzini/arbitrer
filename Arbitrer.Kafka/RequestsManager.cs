@@ -189,7 +189,7 @@ namespace Arbitrer.Kafka
         responseMsg = JsonConvert.SerializeObject(
           new KafkaReply()
           {
-            Reply = new Messages.ResponseMessage { Exception = ex, Status = Messages.StatusEnum.Exception },
+            Reply = new Messages.ResponseMessage { Exception = ex, Status = Messages.StatusEnum.Exception , Content = Unit.Value},
             CorrelationId = message.CorrelationId
           }
           , _options.SerializerSettings);

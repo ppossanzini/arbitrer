@@ -96,7 +96,7 @@ namespace Arbitrer.GRPC
       }
       catch (Exception ex)
       {
-        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Exception = ex, Status = Messages.StatusEnum.Exception },
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Exception = ex, Status = Messages.StatusEnum.Exception ,Content = Unit.Value },
           _options.SerializerSettings);
         _logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
       }
