@@ -115,7 +115,7 @@ namespace Arbitrer
       {
         throw new Exception("Cannot dispatch message to any remote handler");
       }
-
+      
       if (result.Status == Messages.StatusEnum.Exception)
       {
         throw result.Exception ?? new Exception("Error executing remote command");
