@@ -118,6 +118,7 @@ namespace Arbitrer
       
       if (result.Status == Messages.StatusEnum.Exception)
       {
+        _logger.LogError($"Remote handler returned an exception: {result.Exception?.Message} at {result.OriginaStackTrace}");
         throw result.Exception ?? new Exception("Error executing remote command");
       }
 

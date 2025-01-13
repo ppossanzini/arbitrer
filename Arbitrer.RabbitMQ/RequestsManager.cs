@@ -127,7 +127,7 @@ namespace Arbitrer.RabbitMQ
           await CheckRequestsConsumers(CancellationToken.None);
           await ValidateConnectionQos(CancellationToken.None);
         }
-        
+
 
         torebind.Clear();
         await Task.Delay(TimeSpan.FromMinutes(2));
@@ -312,7 +312,12 @@ namespace Arbitrer.RabbitMQ
       }
       catch (Exception ex)
       {
-        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage { Exception = ex, Status = Messages.StatusEnum.Exception, Content = Unit.Value},
+        responseMsg = JsonConvert.SerializeObject(new Messages.ResponseMessage
+          {
+            Exception = ex,
+            OriginaStackTrace = ex.StackTrace?.ToString(),
+            Status = Messages.StatusEnum.Exception, Content = Unit.Value
+          },
           _options.SerializerSettings);
         _logger.LogError(ex, $"Error executing message of type {typeof(T)} from external service");
       }

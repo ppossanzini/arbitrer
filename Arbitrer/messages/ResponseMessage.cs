@@ -13,6 +13,7 @@ namespace Arbitrer.Messages
     public StatusEnum Status { get; set; }
     public T Content { get; set; }
     public Exception Exception { get; set; }
+    public string OriginaStackTrace { get; set; }
   }
 
 
@@ -24,6 +25,7 @@ namespace Arbitrer.Messages
     public StatusEnum Status { get; set; }
     public object Content { get; set; }
     public Exception Exception { get; set; }
+    public string OriginaStackTrace { get; set; }
   }
 
   /// <summary>
