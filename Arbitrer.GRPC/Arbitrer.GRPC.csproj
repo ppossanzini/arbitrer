@@ -15,7 +15,7 @@
         <Deterministic>true</Deterministic>
         <TargetFrameworks>net8.0;</TargetFrameworks>
 
-        <RepositoryUrl>https://github.com/teamdev-it/arbitrer</RepositoryUrl>
+        <RepositoryUrl>https://github.com/ppossanzini/arbitrer</RepositoryUrl>
 
         <RootNamespace>Arbitrer.gRPC</RootNamespace>
     </PropertyGroup>
