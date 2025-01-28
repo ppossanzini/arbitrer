@@ -57,6 +57,8 @@ namespace Arbitrer.RabbitMQ
     /// </summary>
     public bool AutoDelete = false;
 
+    public uint  MaxMessageSize { get; set; } = 100 * 1024 * 1024;
+    
     /// <summary>
     /// The Durable variable represents the durability status of an object.
     /// If Durable is set to true, it means the object is durable, otherwise, it is not.

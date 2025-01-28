@@ -236,7 +236,7 @@ namespace Arbitrer.RabbitMQ
           Password = _options.Password,
           VirtualHost = _options.VirtualHost,
           Port = _options.Port,
-
+          MaxInboundMessageBodySize = _options.MaxMessageSize,
           ClientProvidedName = _options.ClientName
         };
 

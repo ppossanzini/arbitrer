@@ -98,6 +98,7 @@ namespace Arbitrer.RabbitMQ
           VirtualHost = options.VirtualHost,
           Port = options.Port,
           ClientProvidedName = options.ClientName,
+          MaxInboundMessageBodySize = options.MaxMessageSize
         };
 
         _connection = await factory.CreateConnectionAsync();
