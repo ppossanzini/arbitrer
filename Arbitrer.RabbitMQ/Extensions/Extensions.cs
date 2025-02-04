@@ -71,6 +71,24 @@ namespace Arbitrer
       return options;
     }
 
+    public static ArbitrerOptions NotificationsInASingleQueueBut(this ArbitrerOptions options, Func<IEnumerable<Type>, IEnumerable<Type>> notificationTypes = null)
+    {
+      var notifications = options.LocalTypes.Where(t => t.IsNotification());
+      var filteredNotifications = notifications;
+      if (notificationTypes != null)
+      {
+        filteredNotifications = notificationTypes(notifications);
+        notifications = notifications.Where(t => !filteredNotifications.Contains(t));
+      }
+
+      foreach (var n in notifications.Where(t => t.IsNotification()))
+      {
+        options.SetTypeQueueName(n, $"{n.ArbitrerTypeName(options)}${Assembly.GetEntryAssembly()?.GetName().Name.Replace(".","_")}");
+      }
+
+      return options;
+    }
+    
     public static MessageDispatcherOptions DispatchOnlyTo(this MessageDispatcherOptions options,
       Func<IEnumerable<Type>> typesSelect)
     {
