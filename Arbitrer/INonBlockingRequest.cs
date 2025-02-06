@@ -2,7 +2,7 @@ using MediatR;
 
 namespace Arbitrer
 {
-  public interface INonBlockingRequest: INotification
+  public interface INonBlockingRequest: INotification, IRequest
   {
     
   }
