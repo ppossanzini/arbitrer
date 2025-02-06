@@ -1,6 +1,5 @@
-using MediatR;
 
-namespace Arbitrer
+namespace MediatR
 {
   public interface INonBlockingRequest: INotification, IRequest
   {

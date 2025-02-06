@@ -182,7 +182,7 @@ namespace Arbitrer
     {
       var types = (from a in assemblySelect()
         from t in a.GetTypes()
-        where typeof(IBaseRequest).IsAssignableFrom(t) || typeof(INotification).IsAssignableFrom(t)
+        where typeof(IBaseRequest).IsAssignableFrom(t) || typeof(INotification).IsAssignableFrom(t) 
         select t).AsEnumerable();
 
       foreach (var t in types)
