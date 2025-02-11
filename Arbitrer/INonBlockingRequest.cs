@@ -5,4 +5,9 @@ namespace MediatR
   {
     
   }
+
+  public interface INonBlockingRequest<out TResponse> : IRequest<TResponse>, INotification
+  {
+    
+  }
 }
