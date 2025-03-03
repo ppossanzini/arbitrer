@@ -13,7 +13,7 @@
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <Deterministic>true</Deterministic>
-        <TargetFrameworks>net8.0;</TargetFrameworks>
+        <TargetFrameworks>net9.0;</TargetFrameworks>
 
         <RepositoryUrl>https://github.com/ppossanzini/arbitrer</RepositoryUrl>
 
@@ -23,8 +23,8 @@
         <PackageReference Include="Google.Protobuf" Version="3.25.2" />
         <PackageReference Include="Grpc.AspNetCore.Web" Version="2.66.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.*"/>
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.2" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.2" />
         <PackageReference Include="MediatR" Version="12.*"/>
         <PackageReference Include="Grpc.AspNetCore" Version="2.60.0"/>
         <PackageReference Include="Grpc.Net.Client" Version="2.60.0" />

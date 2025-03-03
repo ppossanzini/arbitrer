@@ -101,6 +101,10 @@ namespace Arbitrer.RabbitMQ
           MaxInboundMessageBodySize = options.MaxMessageSize
         };
 
+        factory.AutomaticRecoveryEnabled = true;
+        factory.NetworkRecoveryInterval = TimeSpan.FromSeconds(10);
+        factory.TopologyRecoveryEnabled = true;
+        
         _connection = await factory.CreateConnectionAsync();
       }
 

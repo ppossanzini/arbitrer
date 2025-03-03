@@ -51,8 +51,6 @@ namespace Arbitrer.RabbitMQ
     /// </summary>
     private IChannel _channel = null;
 
-    // private Thread _watchguard = null;
-
     private Dictionary<Type, AsyncEventingBasicConsumer> _consumers = new Dictionary<Type, AsyncEventingBasicConsumer>();
 
     /// <summary>
@@ -95,44 +93,8 @@ namespace Arbitrer.RabbitMQ
 
       await ValidateConnectionQos(cancellationToken);
 
-      // _watchguard = new Thread(() => Watchguard()) { IsBackground = true };
-      // _watchguard.Start();
     }
 
-    // private async void Watchguard()
-    // {
-    //   await Task.Delay(TimeSpan.FromMinutes(2));
-    //   while (true)
-    //   {
-    //     var torebind = new HashSet<Type>();
-    //
-    //     foreach (var k in _consumers)
-    //     {
-    //       if (!k.Value.IsRunning)
-    //       {
-    //         _logger.LogError($"Stopping consumer for {k.Key}: The consumer is stopped for {k.Value.ShutdownReason?.Exception?.Message ?? "unknown reason"}");
-    //         torebind.Add(k.Key);
-    //       }
-    //     }
-    //
-    //     foreach (var t in torebind)
-    //     {
-    //       if (_consumers.ContainsKey(t))
-    //         _consumers.Remove(t);
-    //     }
-    //
-    //     if (torebind.Any())
-    //     {
-    //       await CheckConnection(CancellationToken.None);
-    //       await CheckRequestsConsumers(CancellationToken.None);
-    //       await ValidateConnectionQos(CancellationToken.None);
-    //     }
-    //
-    //
-    //     torebind.Clear();
-    //     await Task.Delay(TimeSpan.FromMinutes(2));
-    //   }
-    // }
 
     private async Task CheckRequestsConsumers(CancellationToken cancellationToken)
     {
@@ -240,6 +202,10 @@ namespace Arbitrer.RabbitMQ
           ClientProvidedName = _options.ClientName
         };
 
+        factory.AutomaticRecoveryEnabled = true;
+        factory.NetworkRecoveryInterval = TimeSpan.FromSeconds(10);
+        factory.TopologyRecoveryEnabled = true;
+        
         _connection = await factory.CreateConnectionAsync(cancellationToken);
         _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
