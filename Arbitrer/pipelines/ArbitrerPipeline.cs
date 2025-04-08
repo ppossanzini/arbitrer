@@ -46,19 +46,19 @@ namespace Arbitrer.Pipelines
         var type = request.GetType().GetGenericArguments()[0];
 
         return ((TResponse)this.GetType().GetMethod(nameof(InvokeHandler), BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(type)
-          .Invoke(this, new object[] { next, req, queueName }));
+          .Invoke(this, new object[] { next, req, queueName, cancellationToken }));
       }
 
-      return await InvokeHandler(next, request, null);
+      return await InvokeHandler(next, request, null, cancellationToken);
     }
 
-    private async Task<TResponse> InvokeHandler<T>(RequestHandlerDelegate<TResponse> next, T req, string queueName)
+    private async Task<TResponse> InvokeHandler<T>(RequestHandlerDelegate<TResponse> next, T req, string queueName, CancellationToken cancellationToken)
     {
       try
       {
         switch (arbitrer.GetLocation(req.GetType()))
         {
-          case HandlerLocation.Local: return await next().ConfigureAwait(false);
+          case HandlerLocation.Local: return await next(cancellationToken).ConfigureAwait(false);
           case HandlerLocation.Remote: return await arbitrer.InvokeRemoteHandler<T, TResponse>(req, queueName);
           default: throw new InvalidHandlerException();
         }
