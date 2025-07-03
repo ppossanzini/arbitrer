@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbitrer.Kafka", "Arbitrer.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arbitrer.GRPC", "Arbitrer.GRPC\Arbitrer.GRPC.csproj", "{26449499-FBBC-4A2A-AE93-EB97A354BAA6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatR", "MediatR\MediatR.csproj", "{4C29D2BC-59D9-4F8B-BC4E-F9757817204D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatR.Contracts", "MediatR.Contracts\MediatR.Contracts.csproj", "{D25BF42A-EBFB-43E0-B7E2-6CE37EEF782D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26449499-FBBC-4A2A-AE93-EB97A354BAA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C29D2BC-59D9-4F8B-BC4E-F9757817204D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C29D2BC-59D9-4F8B-BC4E-F9757817204D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C29D2BC-59D9-4F8B-BC4E-F9757817204D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C29D2BC-59D9-4F8B-BC4E-F9757817204D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D25BF42A-EBFB-43E0-B7E2-6CE37EEF782D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D25BF42A-EBFB-43E0-B7E2-6CE37EEF782D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D25BF42A-EBFB-43E0-B7E2-6CE37EEF782D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D25BF42A-EBFB-43E0-B7E2-6CE37EEF782D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
